@@ -1,4 +1,4 @@
-package com.hexathonapp;
+package com.hexathon.ems;
 
 import com.facebook.react.ReactActivity;
 

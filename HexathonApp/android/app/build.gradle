@@ -128,7 +128,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.hexathonapp"
+        applicationId "com.hexathon.ems"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -179,8 +179,17 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-firebase')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation "com.google.android.gms:play-services-base:15.0.0"
+    // Firebase dependencies
+    implementation "com.google.android.gms:play-services-base:16.1.0"
+    implementation "com.google.firebase:firebase-auth:17.0.0"
+	implementation "com.google.firebase:firebase-messaging:18.0.0"
+	implementation "com.google.firebase:firebase-core:16.0.9"
+    implementation 'me.leolin:ShortcutBadger:1.1.21@aar' // <-- Uses badge on Android
+    implementation 'com.google.android.gms:play-services-maps:16.1.0'
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
@@ -197,5 +206,7 @@ task copyDownloadableDepsToLibs(type: Copy) {
     from configurations.compile
     into 'libs'
 }
-
+apply plugin: 'com.google.gms.google-services'
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+
