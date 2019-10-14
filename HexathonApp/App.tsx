@@ -21,9 +21,24 @@ import {
 } from 'react-native';
 
 import firebase from 'react-native-firebase';
+import {createAppContainer} from 'react-navigation';
+import {createStackNavigator} from 'react-navigation-stack';
+
+import FormLogin from './src/components/FormLogin';
+import FormSignup from './src/components/FormSignup';
+
+
+const MainNavigator = createStackNavigator({
+  Login: {screen: FormLogin},
+  SignUp: {screen: FormSignup},
+},
+{
+  initialRouteName: 'Login',
+});
+
+
 
 export default class App extends Component {
-
 
   checkPermission = async() => {
     const enabled = await firebase.messaging().hasPermission();
@@ -121,23 +136,12 @@ componentWillUnmount() {
     );
   }
 
-  
   render(){
-    const usingHermes = typeof HermesInternal === 'object' && HermesInternal !== null;
+    
+    const AppContainer = createAppContainer(MainNavigator);
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-         
-          <View style={styles.body}>
-            <Text >{"Welcome"}</Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <AppContainer/>
   );
   }
 };

@@ -67,7 +67,7 @@ export default class FormLogin extends Component {
                 <TextInput style={styles.inputBox}
                 onChangeText={(contact_no) => this.setState({contact_no})}
                 underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder= "Contact Number"
+                placeholder= "Username"
                 placeholderTextColor = "#002f6c"
                 selectionColor="#fff"
                // keyboardType="email-address"
@@ -83,7 +83,7 @@ export default class FormLogin extends Component {
                 />
 
                 <TouchableOpacity style={styles.button}> 
-                    <Text style={styles.buttonText} onPress={this.saveData}>{this.props.type}</Text>
+                    <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
             </View>
             
@@ -93,6 +93,7 @@ export default class FormLogin extends Component {
 
 const styles = StyleSheet.create({
     container: {
+        flex:1,
         justifyContent: 'center',
         alignItems: 'center',
     },

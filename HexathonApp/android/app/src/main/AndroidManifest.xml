@@ -28,7 +28,9 @@
   </service>
   <!-- For background messaging -->
   <service android:name="io.invertase.firebase.messaging.RNFirebaseBackgroundMessagingService" />
-
+<meta-data
+     android:name="com.google.android.geo.API_KEY"
+     android:value="AIzaSyAsDx3DB19GW8GnFdCMcDQXzWhya1yiYAo"/>
 
     </application>
 
