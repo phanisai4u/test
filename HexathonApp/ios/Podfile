@@ -39,6 +39,8 @@ target 'HexathonApp' do
 
   pod 'react-native-maps', :path => '../node_modules/react-native-maps'
 
+  pod 'react-native-geocoder', :path => '../node_modules/react-native-geocoder'
+
   target 'HexathonAppTests' do
     inherit! :search_paths
     # Pods for testing
