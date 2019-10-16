@@ -2,23 +2,12 @@ import React, { Component } from "react";
 import { View, Image, Text } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
-export interface LandingPageProps {
-
-}
-
-export interface LandingPageState {
-
-}
-
-export default class LandingPage extends Component<LandingPageProps, LandingPageState> {
-    constructor(props: LandingPageProps, state: LandingPageState) {
+export default class LocationSeachPage extends Component {
+    constructor(props, state) {
         super(props, state);
     }
 
     render() {
-        const homePlace = { description: 'Home', geometry: { location: { lat: 48.8152937, lng: 2.4597668 } } };
-        const workPlace = { description: 'Work', geometry: { location: { lat: 48.8496818, lng: 2.2940881 } } };
-
         return (
             
                 <GooglePlacesAutocomplete
@@ -30,7 +19,15 @@ export default class LandingPage extends Component<LandingPageProps, LandingPage
                     fetchDetails={true}
                     renderDescription={row => row.description} // custom description render
                     onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
-                        console.log(data, details);
+                        console.log("data:::", data);
+                        console.log("details:::", details);
+                        let locationInfo = {
+                            locationString: data.description,
+                            latitude: details.geometry.location.lat,
+                            longitude: details.geometry.location.lng
+                        };
+                        this.props.navigation.state.params.onGoBack(locationInfo);
+                        this.props.navigation.goBack();
                     }}
 
                     getDefaultValue={() => ''}

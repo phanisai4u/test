@@ -6,10 +6,16 @@ import {
     View,
     TextInput,
     TouchableOpacity,
+    Alert,
 } from 'react-native';
 
 import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
+import {getCurrentLocation} from '../services/LocationService';
+import { PermissionsHelper } from '../services/Functions/PermissionHelper';
+
+import Permissions, { Permission } from 'react-native-permissions';
+
 
 export default class DirectionsScreen extends Component {
     constructor(props) {
@@ -21,10 +27,20 @@ export default class DirectionsScreen extends Component {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         // find your origin and destination point coordinates and pass it to our method.
         // I am using Bursa,TR -> Istanbul,TR for this example
-        this.getDirections("17.3850, 78.4867", "17.1883,79.2000")
+        const permission = await PermissionsHelper.requestPermission("location", "Enable Location Services", "Please go to settings and enable location services");
+        if (permission) {
+            getCurrentLocation().then((currentLocation) => {
+                console.log("current location:::", currentLocation);
+                this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
+            }).catch((error) => {
+                console.log("Failed to fetch location", error);
+            })
+        } else {
+            Alert.alert("Failed to fetch location. Please try again");
+        }
     }
 
 
@@ -46,6 +62,32 @@ export default class DirectionsScreen extends Component {
             alert(error)
             return error
         }
+    }
+
+    onSourceLocationPressed = () => {
+        const { navigate } = this.props.navigation;
+        navigate("LocationSeachPage", {
+            onGoBack: (locationInfo) => {
+                console.log("Source Location updated to state::", locationInfo);
+                this.setState({
+                    destination: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
+                    sourceLocationInput: locationInfo.locationString
+                })
+            }
+        });
+    }
+
+    onDestinationLocationPressed = () => {
+        const { navigate } = this.props.navigation;
+        navigate("LocationSeachPage", {
+            onGoBack: (locationInfo) => {
+                console.log("Destination Location updated to state::", locationInfo);
+                this.setState({
+                    source: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
+                    destinationLocationInput: locationInfo.locationString
+                })
+            }
+        });
     }
 
     render() {
@@ -84,23 +126,28 @@ export default class DirectionsScreen extends Component {
                 </MapView>
                 <View style={styles.allNonMapThings}>
                     <View style={styles.inputContainer}>
-                        <TextInput
-                            placeholder="From"
-                            style={styles.source}
-                            onChangeText={this.handleLocationInput}
-                            value={this.state.locationInput}
-                        />
-                        <TextInput
-                            placeholder="Where to go?."
-                            style={styles.destination}
-                            onChangeText={this.handleLocationInput}
-                            value={this.state.locationInput}
-                        />
+                        <TouchableOpacity onPress={this.onSourceLocationPressed}>
+                            <TextInput
+                                placeholder="From"
+                                style={styles.source}
+                                onChangeText={this.handleLocationInput}
+                                value={this.state.sourceLocationInput}
+                                editable={false}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={this.onDestinationLocationPressed}>
+                            <TextInput
+                                placeholder="Where to go?."
+                                style={styles.destination}
+                                onChangeText={this.handleLocationInput}
+                                value={this.state.destinationLocationInput}
+                                editable={false}
+                            />
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.button} >
-                        <TouchableOpacity
-                        >
+                        <TouchableOpacity>
                             <Text style={styles.buttonText} >
                                 Start
               </Text>
@@ -129,6 +176,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     destination: {
+        color: "#000",
         elevation: 1,
         width: '99%',
         height: 45,
@@ -140,6 +188,7 @@ const styles = StyleSheet.create({
         marginRight: 'auto',
     },
     source: {
+        color: "#000",
         elevation: 1,
         width: '99%',
         height: 45,
