@@ -26,14 +26,15 @@ import {createStackNavigator} from 'react-navigation-stack';
 
 import FormLogin from './src/components/FormLogin';
 import FormSignup from './src/components/FormSignup';
-
+import DirectionsScreen from './src/pages/DirectionsPresentations'
 
 const MainNavigator = createStackNavigator({
   Login: {screen: FormLogin},
   SignUp: {screen: FormSignup},
+  Dashboard: {screen: DirectionsScreen},
 },
 {
-  initialRouteName: 'Login',
+  initialRouteName: 'Dashboard',
 });
 
 
