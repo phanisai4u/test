@@ -13,8 +13,6 @@ import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import {getCurrentLocation} from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
-
-import Permissions, { Permission } from 'react-native-permissions';
 import firebase from 'react-native-firebase'
 
 

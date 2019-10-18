@@ -1,115 +1,173 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker } from 'react-native';
+import axios from 'axios';
 //import {Actions} from 'react-native-router-flux';
 
 export default class FormSignup extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
-        this.state={
-            vehicle_no:'',
-            unit_type:'',
-            contact_no : '',
-            password: ''
+        this.state = {
+            vehicleNumber: '',
+            vehicleType:'',
+            vehicleContactNumber: '',
+            vehicleUsername:'',
+            vehiclePassword:'',
+            firstName: '',
+            lastName:'',
+            userContactNumber: '',
+            userUsername:'',
+            userPassword:'',
+            signUpType: 'default'
         }
     }
 
-    saveData =async()=>{
-        const {vehicle_no,unit_type,contact_no,password} = this.state;
-
-        //save data with asyncstorage
-        let loginDetails={
-            vehicle_no: vehicle_no,
-            unit_type:unit_type,
-            contact_no:contact_no,
-            password: password
-        }
-
-        if(this.props.type !== 'Login')
-        {
-            AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
-
-            Keyboard.dismiss();
-            alert("You successfully registered. Contact No.: " + contact_no + ' password: ' + password);
-            this.login();
-        }
-        else if(this.props.type == 'Login')
-        {
-            try{
-                let loginDetails = await AsyncStorage.getItem('loginDetails');
-                let ld = JSON.parse(loginDetails);
-
-                if (ld.email != null && ld.password != null)
-                {
-                    if (ld.email == email && ld.password == password)
-                    {
-                        alert('Go in!');
-                    }
-                    else
-                    {
-                        alert('Email and Password does not exist!');
-                    }
-                }
-
-            }catch(error)
-            {
-                alert(error);
+    saveData = async () => {
+        let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/signup";
+        let body = null;
+        let fcmToken = await AsyncStorage.getItem('fcmToken');
+        if(this.state.signUpType == "unit"){
+            body = {
+                type: this.state.signUpType,
+                vehicleNumber: this.state.vehicleNumber,
+                vehicleType:this.state.vehicleType,
+                contactNumber: this.state.vehicleContactNumber,
+                username:this.state.vehicleUsername,
+                password:this.state.vehiclePassword,
+            }
+        }else{
+            body = {
+                type: this.state.signUpType,
+                firstName: this.state.firstName,
+                lastName:this.state.lastName,
+                mobileNumber: this.state.userContactNumber,
+                username:this.state.userUsername,
+                password:this.state.userPassword,
+                fcmToken:fcmToken
             }
         }
+
+        let headers = {
+            "Content-Type": "application/json" 
+        }
+
+        axios.post(url, body, {headers:headers}).then((response)=>{
+            console.log("SIgnup successful::", response);
+        }).catch((error)=>{
+            console.log("SIgnup failed::", error);
+        });
     }
 
-    showData = async()=>{
+    showData = async () => {
         let loginDetails = await AsyncStorage.getItem('loginDetails');
         let ld = JSON.parse(loginDetails);
-        alert('email: '+ ld.email + ' ' + 'password: ' + ld.password);
+        alert('email: ' + ld.email + ' ' + 'password: ' + ld.password);
+    }
+
+    updateSignUpType = (signUpType) => {
+        this.setState({ signUpType: signUpType })
     }
 
     render() {
-        return(
+        const { signUpType } = this.state;
+        return (
             <View style={styles.container}>
 
-                <TextInput style={styles.inputBox}
-                onChangeText={(vehicle_no) => this.setState({vehicle_no})}
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder="Vehicle Number"
-                placeholderTextColor = "#002f6c"
-                selectionColor="#fff"
-              //  keyboardType="email-address"
-                onSubmitEditing={()=> this.password.focus()}/> 
+                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10 }}>
+                    <Picker style={{ width: "100%" }} selectedValue={this.state.signUpType} onValueChange={this.updateSignUpType}>
+                        <Picker.Item label="Select Signup Type" value="default" />
+                        <Picker.Item label="Unit" value="unit" />
+                        <Picker.Item label="User" value="user" />
+                    </Picker>
+                </View>
 
-                <TextInput style={styles.inputBox}
-                onChangeText={(unit_type) => this.setState({unit_type})}
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder="Unit Type"
-                placeholderTextColor = "#002f6c"
-                selectionColor="#fff"
-              //  keyboardType="email-address"
-                onSubmitEditing={()=> this.password.focus()}/> 
+                {signUpType == "unit" ?
+                    <View>
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(vehicleNumber) => this.setState({ vehicleNumber })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Vehicle Number"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
 
-                <TextInput style={styles.inputBox}
-                onChangeText={(contact_no) => this.setState({contact_no})}
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder="Contact number"
-                placeholderTextColor = "#002f6c"
-                selectionColor="#fff"
-              //  keyboardType="email-address"
-                onSubmitEditing={()=> this.password.focus()}/>
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(vehicleType) => this.setState({ vehicleType })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Vehicle Type"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
 
-                <TextInput style={styles.inputBox}
-                onChangeText={(password) => this.setState({password})} 
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder="Password"
-                secureTextEntry={true}
-                placeholderTextColor = "#002f6c"
-                ref={(input) => this.password = input}
-                />
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(vehicleContactNumber) => this.setState({ vehicleContactNumber })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Contact Number"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
 
-                <TouchableOpacity style={styles.button}> 
-                    <Text style={styles.buttonText} onPress={this.saveData}>{this.props.type}</Text>
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(vehicleUsername) => this.setState({ vehicleUsername })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Username"
+                            placeholderTextColor="#002f6c"
+                            ref={(input) => this.password = input}
+                        />
+
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(vehiclePassword) => this.setState({ vehiclePassword })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Password"
+                            secureTextEntry={true}
+                            placeholderTextColor="#002f6c"
+                            ref={(input) => this.password = input}
+                        />
+                    </View> : null}
+
+                {signUpType == "user" ?
+                    <View>
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(firstName) => this.setState({ firstName })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="First Name"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
+
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(lastName) => this.setState({ lastName })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Last Name"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
+
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(userContactNumber) => this.setState({ userContactNumber })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Contact number"
+                            placeholderTextColor="#002f6c"
+                            selectionColor="#fff"/>
+
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(userUsername) => this.setState({ userUsername })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Username"
+                            placeholderTextColor="#002f6c"
+                            ref={(input) => this.password = input}
+                        />
+
+                        <TextInput style={styles.inputBox}
+                            onChangeText={(userPassword) => this.setState({ userPassword })}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Password"
+                            secureTextEntry={true}
+                            placeholderTextColor="#002f6c"
+                            ref={(input) => this.password = input}
+                        />
+                    </View> : null}
+
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText} onPress={this.saveData}>Sign Up</Text>
                 </TouchableOpacity>
             </View>
-            
+
         )
     }
 }
@@ -121,12 +179,13 @@ const styles = StyleSheet.create({
     },
     inputBox: {
         width: 300,
-        backgroundColor: '#eeeeee', 
+        backgroundColor: '#eeeeee',
         borderRadius: 25,
         paddingHorizontal: 16,
         fontSize: 16,
         color: '#002f6c',
-        marginVertical: 10
+        marginVertical: 10,
+        borderColor: '#000', borderWidth: 1
     },
     button: {
         width: 300,

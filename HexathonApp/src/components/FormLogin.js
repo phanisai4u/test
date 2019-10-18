@@ -1,105 +1,113 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
-
-//import {Actions} from 'react-native-router-flux';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker } from 'react-native';
+import { getCurrentLocation } from '../services/LocationService';
+import { PermissionsHelper } from '../services/Functions/PermissionHelper';
+import axios from 'axios';
 
 export default class FormLogin extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
-        this.state={
-            contact_no:'',
-            password: ''
+        this.state = {
+            username: '',
+            password: '',
+            loginType: 'default'
         }
     }
 
-    saveData =async()=>{
-        const {contact_no,password} = this.state;
+    saveData = async () => {
+        const { username, password, loginType } = this.state;
+        console.log("Username:", username, "Password::", password, "LoginType::", loginType);
+        if (username == "" || password == "" || loginType == "default") {
+            Alert.alert("Login Failed", "Please check your username, password and select proper login type");
+        } else {
+            // find your origin and destination point coordinates and pass it to our method.
+            // I am using Bursa,TR -> Istanbul,TR for this example
+            const permission = await PermissionsHelper.requestPermission("location", "Enable Location Services", "Please go to settings and enable location services");
+            if (permission) {
+                getCurrentLocation().then((currentLocation) => {
+                    console.log("current location:::", currentLocation);
 
-        //save data with asyncstorage
-        let loginDetails={
-            contact_no: contact_no,
-            password: password
-        }
-
-        if(this.props.type !== 'Login')
-        {
-            AsyncStorage.setItem('loginDetails', JSON.stringify(loginDetails));
-
-            Keyboard.dismiss();
-            alert("You successfully registered. Contact Number: " + contact_no + ' password: ' + password);
-            this.login();
-        }
-        else if(this.props.type == 'Login')
-        {
-            try{
-                let loginDetails = await AsyncStorage.getItem('loginDetails');
-                let ld = JSON.parse(loginDetails);
-
-                if (ld.contact_no != null && ld.password != null)
-                {
-                    if (ld.contact_no == contact_no && ld.password == password)
-                    {
-                        alert('Go in!');
+                    let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/login";
+                    let body = {
+                        type: this.state.loginType,
+                        username: this.state.username,
+                        password: this.state.password,
+                        location: {
+                            latitude:currentLocation.address.position.lat,
+                            longitude:currentLocation.address.position.lng
+                        }
                     }
-                    else
-                    {
-                        alert('Contact Number and Password does not exist!');
-                    }
-                }
 
-            }catch(error)
-            {
-                alert(error);
+                    let headers = {
+                        "Content-Type": "application/json"
+                    }
+
+                    axios.post(url, body, { headers: headers }).then((response) => {
+                        console.log("Login successful::", response);
+                    }).catch((error) => {
+                        console.log("Login failed::", error);
+                    });
+
+                }).catch((error) => {
+                    console.log("Failed to fetch location", error);
+                })
+            } else {
+                Alert.alert("Failed to fetch location. Please try again");
             }
         }
+
+
     }
 
-    showData = async()=>{
-        let loginDetails = await AsyncStorage.getItem('loginDetails');
-        let ld = JSON.parse(loginDetails);
-        alert('contact_no: '+ ld.contact_no + ' ' + 'password: ' + ld.password);
+    updateLoginType = (loginType) => {
+        this.setState({ loginType: loginType })
     }
 
     render() {
-        return(
+        return (
             <View style={styles.container}>
                 <TextInput style={styles.inputBox}
-                onChangeText={(contact_no) => this.setState({contact_no})}
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder= "Username"
-                placeholderTextColor = "#002f6c"
-                selectionColor="#fff"
-               // keyboardType="email-address"
-                onSubmitEditing={()=> this.password.focus()}/>
-                
+                    onChangeText={(username) => this.setState({ username })}
+                    underlineColorAndroid='rgba(0,0,0,0)'
+                    placeholder="Username"
+                    placeholderTextColor="#002f6c"
+                    selectionColor="#fff" />
+
                 <TextInput style={styles.inputBox}
-                onChangeText={(password) => this.setState({password})} 
-                underlineColorAndroid='rgba(0,0,0,0)' 
-                placeholder="Password"
-                secureTextEntry={true}
-                placeholderTextColor = "#002f6c"
-                ref={(input) => this.password = input}
+                    onChangeText={(password) => this.setState({ password })}
+                    underlineColorAndroid='rgba(0,0,0,0)'
+                    placeholder="Password"
+                    secureTextEntry={true}
+                    placeholderTextColor="#002f6c"
+                    ref={(input) => this.password = input}
                 />
 
-                <TouchableOpacity style={styles.button}> 
+                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10 }}>
+                    <Picker style={{ width: "100%" }} selectedValue={this.state.loginType} onValueChange={this.updateLoginType}>
+                        <Picker.Item label="Select Login Type" value="default" />
+                        <Picker.Item label="Unit" value="unit" />
+                        <Picker.Item label="User" value="user" />
+                    </Picker>
+                </View>
+                <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
             </View>
-            
+
         )
     }
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex:1,
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
     inputBox: {
         width: 300,
-        backgroundColor: '#eeeeee', 
+        borderColor: '#000', borderWidth: 1,
         borderRadius: 25,
         paddingHorizontal: 16,
         fontSize: 16,
