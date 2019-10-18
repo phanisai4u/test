@@ -15,6 +15,7 @@ import {getCurrentLocation} from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 
 import Permissions, { Permission } from 'react-native-permissions';
+import firebase from 'react-native-firebase'
 
 
 export default class DirectionsScreen extends Component {
@@ -43,7 +44,38 @@ export default class DirectionsScreen extends Component {
         }
     }
 
+     save = async () => {
+        const event = {
+            "createdBy" : "test_user2",
+            "currentLocation" : {
+              "latitude" : "",
+              "longitude" : ""
+            },
+            "destination" : {
+              "location" : {
+                "latitude" : "",
+                "longitude" : ""
+              },
+              "name" : "d1"
+            },
+            "source" : {
+              "location" : {
+                "latitude" : "",
+                "longitude" : ""
+              },
+              "name" : "s1"
+            },
+            "status" : "RUNNING",
+            "unit" : "unit2"
+          }
+    
+         firebase.database().ref('events').push(event).then(value => {
+            console.log(value)
 
+        }).catch(error => {
+            console.log(error)
+        })
+      }
 
     async getDirections(startLoc, destinationLoc) {
         try {
@@ -147,7 +179,7 @@ export default class DirectionsScreen extends Component {
                     </View>
 
                     <View style={styles.button} >
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={this.save}>
                             <Text style={styles.buttonText} >
                                 Start
               </Text>

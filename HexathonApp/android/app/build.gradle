@@ -193,6 +193,8 @@ dependencies {
 	implementation "com.google.firebase:firebase-core:16.0.9"
     implementation 'me.leolin:ShortcutBadger:1.1.21@aar' // <-- Uses badge on Android
     implementation 'com.google.android.gms:play-services-maps:16.1.0'
+    implementation "com.google.firebase:firebase-storage:+"
+    implementation "com.google.firebase:firebase-database:+"
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
