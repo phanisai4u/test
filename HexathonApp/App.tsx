@@ -28,14 +28,15 @@ import FormLogin from './src/components/FormLogin';
 import FormSignup from './src/components/FormSignup';
 import DirectionsScreen from './src/pages/DirectionsPresentations'
 import LocationSeachPage from "./src/components/LocationSearchPage";
+import UserDashboardScreen  from "./src/pages/UserDashboard"
 
 
 const MainNavigator = createStackNavigator({
   Login: {screen: FormLogin},
   SignUp: {screen: FormSignup},
   Dashboard: {screen: DirectionsScreen},
-  LocationSeachPage: {screen: LocationSeachPage}
-
+  LocationSeachPage: {screen: LocationSeachPage},
+  UserDashboard: {screen:UserDashboardScreen}
 },
 {
   initialRouteName: 'Login',
