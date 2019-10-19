@@ -15,6 +15,13 @@ export default class FormLogin extends Component {
         }
     }
 
+    navigateToSignUp = () => {
+        const { navigate } = this.props.navigation;
+        navigate("SignUp", {
+            onGoBack: () => {
+            }
+        });
+    }
     saveData = async () => {
         const { username, password, loginType } = this.state;
         console.log("Username:", username, "Password::", password, "LoginType::", loginType);
@@ -93,6 +100,9 @@ export default class FormLogin extends Component {
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={styles.signup}>
+                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Already have account?.</Text>
+                </TouchableOpacity>
             </View>
 
         )
@@ -121,10 +131,21 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         paddingVertical: 12
     },
+    signup: {
+        width: 300,
+        marginVertical: 10,
+        paddingVertical: 12
+    },
     buttonText: {
         fontSize: 16,
         fontWeight: '500',
         color: '#ffffff',
+        textAlign: 'center'
+    },
+    haveText: {
+        fontSize: 14,
+        fontWeight: '300',
+        color: '#4f83cc',
         textAlign: 'center'
     }
 });
