@@ -55,17 +55,6 @@ export default class DirectionsScreen extends Component {
         });
       }
       */
-      componentWillUnmount() {
-        NetInfo.isConnected.removeEventListener(
-            'connectionChange',
-            this._handleConnectivityChange
-        );
-     
-      }
-     
-      _handleConnectivityChange = (isConnected) => {
-        this.setState({isNetworkAvailable : isConnected})
-      };
       
 
     async componentDidMount() {
@@ -113,6 +102,18 @@ export default class DirectionsScreen extends Component {
             }
           });
     }
+    componentWillUnmount() {
+        NetInfo.isConnected.removeEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+     
+      }
+     
+      _handleConnectivityChange = (isConnected) => {
+        this.setState({isNetworkAvailable : isConnected})
+      };
+      
     
 
     
@@ -148,6 +149,10 @@ export default class DirectionsScreen extends Component {
         let username = await AsyncStorage.getItem('username');
         let r = Math.random().toString(36).substring(7);
         if (this.state.source && this.state.destination) {
+            if(!this.state.isNetworkAvailable){
+                Alert.alert("Network Connection","Please check your internet connectivity");
+                return;
+            }
         const event = {
             "createdBy": username,
             "eventId":r,
@@ -174,6 +179,7 @@ export default class DirectionsScreen extends Component {
             }
 
             axios.post(url, body, { headers: headers }).then(async(response) => {
+                
                 console.log("Trip started successful:", response);
                 this.setState({
                     eventId:event.eventId
@@ -190,7 +196,10 @@ export default class DirectionsScreen extends Component {
 
     endEvent = async () => {
         let username = await AsyncStorage.getItem('username');
-
+        if(!this.state.isNetworkAvailable){
+            Alert.alert("Network Connection","Please check your internet connectivity");
+            return;
+        }
         const event = {
             "createdBy": username,
             "eventId":this.state.eventId,
@@ -207,6 +216,7 @@ export default class DirectionsScreen extends Component {
             }
 
             axios.post(url, body, { headers: headers }).then(async(response) => {
+                
                 console.log("Trip end successful:", response);
                 this.setState({
                     eventId:undefined,
@@ -289,11 +299,12 @@ export default class DirectionsScreen extends Component {
     mockEventChange = () => {
         
          console.log("mockEventChange");
-
+       /*
         if(this.state.isNetworkAvailable){
             Alert.alert("Network Connection","Please check your internet connectivity");
             return;
         }
+        */
         let count = this.state.coords.length - 1;
         if (count > 0 && counter >= 0 && counter < count) {
             console.log(counter)
@@ -351,10 +362,12 @@ export default class DirectionsScreen extends Component {
     performLogout = () => {
         Alert.alert("Logout", "Are you sure you want to logout?",[
             {text: 'YES', onPress: async() => {
-                if(this.state.isNetworkAvailable){
+                /*
+                  if(this.state.isNetworkAvailable){
                     Alert.alert("Network Connection","Please check your internet connectivity");
                     return;
-                }
+                   }
+                */
                 let username = await AsyncStorage.getItem('username');
                 let loginType = await AsyncStorage.getItem('loginType');
                 let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/logout";

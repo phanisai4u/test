@@ -74,7 +74,8 @@ export default class FormLogin extends Component {
             Alert.alert("Network Connection","Please check your internet connectivity");
             return;
         }
-        
+        let fcmToken = await AsyncStorage.getItem('fcmToken');
+
         this.setState({ dialogVisible: true })
         const { username, password, loginType } = this.state;
         console.log("Username:", username, "Password::", password, "LoginType::", loginType);
@@ -96,7 +97,8 @@ export default class FormLogin extends Component {
                         location: {
                             latitude: currentLocation.address.position.lat,
                             longitude: currentLocation.address.position.lng
-                        }
+                        },
+                        fcmToken:fcmToken
                     }
 
                     let headers = {
@@ -114,6 +116,7 @@ export default class FormLogin extends Component {
                             this.navigateToUserDashboard();
                         }
                     }).catch((error) => {
+                        this.setState({ dialogVisible: false })
                         console.log("Login failed::", error);
                        // Alert.alert("Login Failed");
                        // this.props.navigation.goBack();
