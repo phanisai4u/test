@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker,Image,AsyncStorage,ActivityIndicator } from 'react-native';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import axios from 'axios';
@@ -72,10 +72,12 @@ export default class FormLogin extends Component {
                         "Content-Type": "application/json"
                     }
 
-                    axios.post(url, body, { headers: headers }).then((response) => {
+                    axios.post(url, body, { headers: headers }).then(async(response) => {
                         this.setState({ dialogVisible: false })
                         console.log("Login successful::", response);
-                        if (body.type == "unit") {
+                        await AsyncStorage.setItem('username', username);
+                        await AsyncStorage.setItem('loginType', loginType);
+                        if (body.type == "unit"){
                             this.navigateToUnitDashboard();
                         } else if (body.type == "user") {
                             this.navigateToUserDashboard();

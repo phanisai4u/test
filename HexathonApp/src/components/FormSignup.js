@@ -19,11 +19,13 @@ export default class FormSignup extends Component {
             userContactNumber: '',
             userUsername: '',
             userPassword: '',
-            signUpType: 'default'
+            signUpType: 'default',
+            dialogVisible:false
         }
     }
 
     saveData = async () => {
+        this.setState({ dialogVisible: true })
         let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/signup";
         let body = null;
         let fcmToken = await AsyncStorage.getItem('fcmToken');
@@ -35,7 +37,7 @@ export default class FormSignup extends Component {
                 contactNumber: this.state.vehicleContactNumber,
                 username: this.state.vehicleUsername,
                 password: this.state.vehiclePassword,
-            },
+            }
         } else {
             body = {
                 type: this.state.signUpType,
@@ -53,6 +55,7 @@ export default class FormSignup extends Component {
         }
 
         axios.post(url, body, { headers: headers }).then((response) => {
+            this.setState({ dialogVisible: false })
             console.log("SIgnup successful::", response);
             this.navigateToLogin()
 
