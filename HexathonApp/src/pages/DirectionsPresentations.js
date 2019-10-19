@@ -397,16 +397,14 @@ export default class DirectionsScreen extends Component {
         let destination = this.state.destination 
         let unit = this.state.unitCoordinate 
         let eventId = this.state.eventId
-
-        console.log(unit)
         return (
             <View style={styles.overallViewContainer}>
 
                 <MapView
                     style={styles.container}
                     initialRegion={{
-                        latitude: 17.3850,
-                        longitude: 78.4867,
+                        latitude: unit && unit.latitude || 17.3850,
+                        longitude: unit && unit.longitude || 78.4867,
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421
                     }}

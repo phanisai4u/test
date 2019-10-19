@@ -79,9 +79,9 @@ export default class UserDashboardScreen extends Component {
  
          Alert.alert(title, body, [{text:'OK', onPress:()=>{
             let obj = JSON.parse(body)
-             let source = obj.source.location
-             let destination = obj.destination.location
-             let unit = obj.currentLocation
+             let source = obj && obj.source && obj.source.location
+             let destination = obj && obj.destination && obj.destination.location
+             let unit = obj && obj.currentLocation
              if (source && destination && unit) {
             this.setState({
                 source:source,
@@ -251,8 +251,8 @@ export default class UserDashboardScreen extends Component {
                 <MapView
                     style={styles.container}
                     initialRegion={{
-                        latitude: 17.3850,
-                        longitude: 78.4867,
+                        latitude: unit && unit.latitude || 17.3850,
+                        longitude: unit && unit.longitude || 78.4867,
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421
                     }}
