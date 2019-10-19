@@ -10,10 +10,9 @@ import {
     Platform,
     Image,
     AsyncStorage,
-    NetInfo
 } from 'react-native';
 
-
+import NetInfo from "@react-native-community/netinfo";
 import axios from 'axios';
 import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';

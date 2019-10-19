@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import NetInfo from "@react-native-community/netinfo";
-<<<<<<< HEAD
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker,ActivityIndicator,Alert } from 'react-native';
-=======
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker ,ActivityIndicator,Alert} from 'react-native';
->>>>>>> 2eea36dc95c3d795d06d879b93abb38b0a7e7316
 import axios from 'axios';
 import { Dialog } from 'react-native-simple-dialogs';
 
