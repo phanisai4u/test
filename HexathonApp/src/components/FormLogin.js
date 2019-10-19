@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker } from 'react-native';
 import NetInfo from "@react-native-community/netinfo";
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker,Image,AsyncStorage,ActivityIndicator } from 'react-native';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import axios from 'axios';
+import { Dialog } from 'react-native-simple-dialogs';
 
 export default class FormLogin extends Component {
 
@@ -13,7 +14,8 @@ export default class FormLogin extends Component {
             username: '',
             password: '',
             loginType: 'default',
-            isNetworkAvailable:false
+            isNetworkAvailable:false,
+            dialogVisible: false
         }
     }
     componentDidMount() {
@@ -56,7 +58,7 @@ export default class FormLogin extends Component {
         });
     }
 
-    
+
     navigateToUnitDashboard = () => {
         const { navigate } = this.props.navigation;
         navigate("Dashboard", {
@@ -73,6 +75,7 @@ export default class FormLogin extends Component {
             return;
         }
         
+        this.setState({ dialogVisible: true })
         const { username, password, loginType } = this.state;
         console.log("Username:", username, "Password::", password, "LoginType::", loginType);
         if (username == "" || password == "" || loginType == "default") {
@@ -91,8 +94,8 @@ export default class FormLogin extends Component {
                         username: this.state.username,
                         password: this.state.password,
                         location: {
-                            latitude:currentLocation.address.position.lat,
-                            longitude:currentLocation.address.position.lng
+                            latitude: currentLocation.address.position.lat,
+                            longitude: currentLocation.address.position.lng
                         }
                     }
 
@@ -100,11 +103,14 @@ export default class FormLogin extends Component {
                         "Content-Type": "application/json"
                     }
 
-                    axios.post(url, body, { headers: headers }).then((response) => {
+                    axios.post(url, body, { headers: headers }).then(async(response) => {
+                        this.setState({ dialogVisible: false })
                         console.log("Login successful::", response);
+                        await AsyncStorage.setItem('username', username);
+                        await AsyncStorage.setItem('loginType', loginType);
                         if (body.type == "unit"){
                             this.navigateToUnitDashboard();
-                        }else if (body.type == "user"){
+                        } else if (body.type == "user") {
                             this.navigateToUserDashboard();
                         }
                     }).catch((error) => {
@@ -134,6 +140,14 @@ export default class FormLogin extends Component {
     render() {
         return (
             <View style={styles.container}>
+                <View style={{ justifyContent: 'center', marginBottom: 60 }}>
+                    <View style={{ flexDirection: "row", justifyContent: 'center' }}>
+                        <Image style={{ width: 70, height: 70 }}
+                            source={require('../images/siren.jpg')} />
+                        <Text style={{ fontSize: 60, fontWeight: "bold", textAlignVertical: "center" }}>EMS</Text>
+                    </View>
+                    <Text style={{ fontSize: 16, fontWeight: "bold", textAlignVertical: "center" }}>Emergency Management Services</Text>
+                </View>
                 <TextInput style={styles.inputBox}
                     onChangeText={(username) => this.setState({ username })}
                     underlineColorAndroid='rgba(0,0,0,0)'
@@ -150,7 +164,7 @@ export default class FormLogin extends Component {
                     ref={(input) => this.password = input}
                 />
 
-                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10 }}>
+                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10, marginBottom: 60 }}>
                     <Picker style={{ width: "100%" }} selectedValue={this.state.loginType} onValueChange={this.updateLoginType}>
                         <Picker.Item label="Select Login Type" value="default" />
                         <Picker.Item label="Unit" value="unit" />
@@ -161,8 +175,16 @@ export default class FormLogin extends Component {
                     <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.signup}>
-                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Dont have an account yet?.</Text>
+                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Don't have an account? SignUp here</Text>
                 </TouchableOpacity>
+                <Dialog
+                    visible={this.state.dialogVisible}
+                    onTouchOutside={() => this.setState({ dialogVisible: false })} >
+                    <View style={styles.activityIndicator}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                        <Text style={{marginLeft:10}}>Login in Progress ...</Text>
+                    </View>
+                </Dialog>
             </View>
 
         )
@@ -198,6 +220,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontSize: 16,
+        fontWeight: 'bold',
         fontWeight: '500',
         color: '#ffffff',
         textAlign: 'center'
@@ -207,5 +230,9 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         color: '#4f83cc',
         textAlign: 'center'
+    },
+    activityIndicator:{
+        flexDirection:'row',
+        alignItems:'center'
     }
 });

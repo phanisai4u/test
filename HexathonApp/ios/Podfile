@@ -42,6 +42,7 @@ target 'HexathonApp' do
   pod 'react-native-geocoder', :path => '../node_modules/react-native-geocoder'
 
   pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
+  pod 'RNSound', :path => '../node_modules/react-native-sound'
 
   target 'HexathonAppTests' do
     inherit! :search_paths

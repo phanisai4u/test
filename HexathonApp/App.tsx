@@ -19,7 +19,7 @@ import {
   Alert,
   AsyncStorage,
 } from 'react-native';
-
+import Sound from 'react-native-sound';
 import firebase from 'react-native-firebase';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
@@ -98,8 +98,31 @@ componentWillUnmount() {
     * Triggered when a particular notification has been received in foreground
     * */
     this.notificationListener = firebase.notifications().onNotification((notification) => {
-      console.log("Inside onNotification::", notification);
-        const { title, body } = notification;
+      // console.log("Inside onNotification::", notification);
+         const { title, body } = notification;
+      var whoosh = new Sound('buzzer.mp3', Sound.MAIN_BUNDLE, (error) => {
+        if (error) {
+          console.log('failed to load the sound', error);
+          return;
+        }
+      
+
+      whoosh.play((success) => {
+        if (success) {
+          console.log('successfully finished playing');
+        } else {
+          console.log('playback failed due to audio decoding errors');
+        }
+      });
+    });
+    whoosh.setNumberOfLoops(-1);
+    whoosh.stop(() => {
+      // Note: If you want to play a sound after stopping and rewinding it,
+      // it is important to call play() in a callback.
+      whoosh.play();
+    });
+    whoosh.release();
+
         this.showAlert(title, body);
     });
   

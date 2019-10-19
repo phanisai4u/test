@@ -5,6 +5,7 @@ import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
+import com.zmxv.RNSound.RNSoundPackage;
 import com.agontuk.RNFusedLocation.RNFusedLocationPackage;
 import com.devfd.RNGeocoder.RNGeocoderPackage;
 import com.airbnb.android.react.maps.MapsPackage;
