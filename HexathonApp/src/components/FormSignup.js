@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import NetInfo from "@react-native-community/netinfo";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker,ActivityIndicator,Alert } from 'react-native';
 import axios from 'axios';
 import { Dialog } from 'react-native-simple-dialogs';
 
@@ -50,7 +50,7 @@ export default class FormSignup extends Component {
 
     saveData = async () => {
         console.log("Connection status is "+this.state.isNetworkAvailable);
-       if(!this.state.connection_Status){
+       if(!this.state.isNetworkAvailable){
             Alert.alert("Network Connection","Please check your internet connectivity");
             return;
         }
@@ -87,7 +87,7 @@ export default class FormSignup extends Component {
             this.setState({ dialogVisible: false })
             console.log("SIgnup successful::", response);
             Alert.alert("Signup successful");
-            this.navigateToLogin()
+            this.navigateToLogin();
 
         }).catch((error) => {
             console.log("SIgnup failed::", error);

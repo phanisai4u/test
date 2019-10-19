@@ -9,8 +9,8 @@ import {
     Alert,
     Platform,
     Image,
-    AsyncStorage
-
+    AsyncStorage,
+    NetInfo
 } from 'react-native';
 
 
@@ -33,6 +33,7 @@ export default class DirectionsScreen extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            isNetworkAvailable:false,
             coords: [],
             source: { latitude: 17.3850, longitude: 78.4867 },
             destination: { latitude: 17.1883, longitude: 79.2000 },
@@ -42,8 +43,40 @@ export default class DirectionsScreen extends Component {
             }),
         }
     }
+   /* 
+    componentDidMount() {
+        NetInfo.isConnected.addEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+       
+        NetInfo.isConnected.fetch().done((isConnected) => {
+            this.setState({isNetworkAvailable : isConnected})
+        });
+      }
+      */
+      componentWillUnmount() {
+        NetInfo.isConnected.removeEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+     
+      }
+     
+      _handleConnectivityChange = (isConnected) => {
+        this.setState({isNetworkAvailable : isConnected})
+      };
+      
 
     async componentDidMount() {
+        NetInfo.isConnected.addEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+       
+        NetInfo.isConnected.fetch().done((isConnected) => {
+            this.setState({isNetworkAvailable : isConnected})
+        });
         // find your origin and destination point coordinates and pass it to our method.
         // I am using Bursa,TR -> Istanbul,TR for this example
         const permission = await PermissionsHelper.requestPermission("location", "Enable Location Services", "Please go to settings and enable location services");
@@ -155,7 +188,13 @@ export default class DirectionsScreen extends Component {
     }
 
     mockEventChange = () => {
-      console.log("mockEventChange")
+        
+         console.log("mockEventChange");
+
+        if(this.state.isNetworkAvailable){
+            Alert.alert("Network Connection","Please check your internet connectivity");
+            return;
+        }
         let count = this.state.coords.length - 1;
         if (count > 0 && counter >= 0 && counter <= count) {
             console.log(counter)
@@ -193,6 +232,10 @@ export default class DirectionsScreen extends Component {
     performLogout = () => {
         Alert.alert("Logout", "Are you sure you want to logout?",[
             {text: 'YES', onPress: async() => {
+                if(this.state.isNetworkAvailable){
+                    Alert.alert("Network Connection","Please check your internet connectivity");
+                    return;
+                }
                 let username = await AsyncStorage.getItem('username');
                 let loginType = await AsyncStorage.getItem('loginType');
                 let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/logout";
