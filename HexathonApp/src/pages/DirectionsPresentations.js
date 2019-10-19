@@ -34,12 +34,9 @@ export default class DirectionsScreen extends Component {
         super(props)
         this.state = {
             coords: [],
-            source: { latitude: 17.3850, longitude: 78.4867 },
-            destination: { latitude: 17.1883, longitude: 79.2000 },
-            uintCoordinate: new AnimatedRegion({
-                latitude: 17.3850,
-                longitude: 78.4867,
-            }),
+            source: undefined,
+            destination: undefined,
+            uintCoordinate:undefined,
             eventId: undefined
         }
     }
@@ -51,7 +48,10 @@ export default class DirectionsScreen extends Component {
         if (permission) {
             getCurrentLocation().then((currentLocation) => {
                 console.log("current location:::", currentLocation);
-                this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
+                this.setState({
+                    uintCoordinate:currentLocation
+                })
+                // /this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
             }).catch((error) => {
                 console.log("Failed to fetch location", error);
             })
@@ -66,10 +66,7 @@ export default class DirectionsScreen extends Component {
         const event = {
             "createdBy": username,
             "eventId":"12233444",
-            "currentLocation": {
-                "latitude": "",
-                "longitude": ""
-            },
+            "currentLocation": this.state.unitCoordinate,
             "destination": {
                 "location": this.state.destination,
                 "name": this.state.destinationLocationInput
