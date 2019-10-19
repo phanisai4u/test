@@ -22,6 +22,25 @@ export default class FormLogin extends Component {
             }
         });
     }
+
+
+    navigateToUserDashboard = () => {
+        const { navigate } = this.props.navigation;
+        navigate("Dashboard", {
+            onGoBack: () => {
+            }
+        });
+    }
+
+    
+    navigateToUnitDashboard = () => {
+        const { navigate } = this.props.navigation;
+        navigate("Dashboard", {
+            onGoBack: () => {
+            }
+        });
+    }
+
     saveData = async () => {
         const { username, password, loginType } = this.state;
         console.log("Username:", username, "Password::", password, "LoginType::", loginType);
@@ -52,6 +71,11 @@ export default class FormLogin extends Component {
 
                     axios.post(url, body, { headers: headers }).then((response) => {
                         console.log("Login successful::", response);
+                        if (body.type == "unit"){
+                            this.navigateToUnitDashboard();
+                        }else if (body.type == "user"){
+                            this.navigateToUserDashboard();
+                        }
                     }).catch((error) => {
                         console.log("Login failed::", error);
                     });
@@ -101,7 +125,7 @@ export default class FormLogin extends Component {
                     <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.signup}>
-                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Already have account?.</Text>
+                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Dont have an account yet?.</Text>
                 </TouchableOpacity>
             </View>
 
