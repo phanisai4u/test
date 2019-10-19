@@ -7,13 +7,19 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
+    Platform,
 } from 'react-native';
 
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
-import {getCurrentLocation} from '../services/LocationService';
+import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import firebase from 'react-native-firebase'
+// const screen = Dimensions.get('window');
+
+// const ASPECT_RATIO = screen.width / screen.height;
+// const LATITUDE_DELTA = 0.0922;
+// const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 
 export default class DirectionsScreen extends Component {
@@ -23,6 +29,10 @@ export default class DirectionsScreen extends Component {
             coords: [],
             source: { latitude: 17.3850, longitude: 78.4867 },
             destination: { latitude: 17.1883, longitude: 79.2000 },
+            uintCoordinate: {
+                latitude: 17.3850,
+                longitude: 78.4867,
+            },
         }
     }
 
@@ -42,38 +52,38 @@ export default class DirectionsScreen extends Component {
         }
     }
 
-     save = async () => {
+    save = async () => {
         const event = {
-            "createdBy" : "test_user2",
-            "currentLocation" : {
-              "latitude" : "",
-              "longitude" : ""
+            "createdBy": "test_user2",
+            "currentLocation": {
+                "latitude": "",
+                "longitude": ""
             },
-            "destination" : {
-              "location" : {
-                "latitude" : "",
-                "longitude" : ""
-              },
-              "name" : "d1"
+            "destination": {
+                "location": {
+                    "latitude": "",
+                    "longitude": ""
+                },
+                "name": "d1"
             },
-            "source" : {
-              "location" : {
-                "latitude" : "",
-                "longitude" : ""
-              },
-              "name" : "s1"
+            "source": {
+                "location": {
+                    "latitude": "",
+                    "longitude": ""
+                },
+                "name": "s1"
             },
-            "status" : "RUNNING",
-            "unit" : "unit2"
-          }
-    
-         firebase.database().ref('events').push(event).then(value => {
+            "status": "RUNNING",
+            "unit": "unit2"
+        }
+
+        firebase.database().ref('events').push(event).then(value => {
             console.log(value)
 
         }).catch(error => {
             console.log(error)
         })
-      }
+    }
 
     async getDirections(startLoc, destinationLoc) {
         try {
@@ -100,8 +110,10 @@ export default class DirectionsScreen extends Component {
             onGoBack: (locationInfo) => {
                 console.log("Source Location updated to state::", locationInfo);
                 this.setState({
-                    destination: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
+                    source: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
                     sourceLocationInput: locationInfo.locationString
+                },() => {
+                    this.getNewDirectionOnChangeLocations();
                 })
             }
         });
@@ -113,16 +125,68 @@ export default class DirectionsScreen extends Component {
             onGoBack: (locationInfo) => {
                 console.log("Destination Location updated to state::", locationInfo);
                 this.setState({
-                    source: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
+                    destination: { latitude: locationInfo.latitude, longitude: locationInfo.longitude },
                     destinationLocationInput: locationInfo.locationString
+                },() => {
+                    this.getNewDirectionOnChangeLocations()
                 })
             }
         });
     }
 
+    getNewDirectionOnChangeLocations = () => {
+   
+        if (this.state.source && this.state.destination) {
+            let src = `${this.state.source.latitude}, ${this.state.source.longitude}`;
+            let dest = `${this.state.destination.latitude}, ${this.state.destination.longitude}`;
+            this.getDirections(src,dest);
+        }else{
+            console.log("source or destination missing");
+        }
+
+       
+    }
+
+    mockEventChange = () => {
+      console.log("mockEventChange")
+        let count = this.state.coords.length - 1;
+        let counter = 0
+        if (count > 0 && counter >= 0 && counter <= count) {
+            console.log(counter)
+            console.log(count)
+            setTimeout(() => {
+                let point = this.state.coords[counter]
+                // this.setState({
+                //     uintCoordinate: new AnimatedRegion({latitude: point[0],
+                //         longitude: point[1],
+                //     })
+               // }, () => {
+                    console.log(this.state.uintCoordinate);
+                //    this.animate()
+                //})
+                counter = counter + 1;
+            }, 2000)
+        }
+    }
+
+    animate = () => {
+        const { uintCoordinate } = this.state;
+        // const newCoordinate = {
+        //   latitude: LATITUDE + (Math.random() - 0.5) * (LATITUDE_DELTA / 2),
+        //   longitude: LONGITUDE + (Math.random() - 0.5) * (LONGITUDE_DELTA / 2),
+        // };
+
+            if (this.marker) {
+                this.marker._component.animateMarkerToCoordinate(uintCoordinate, 500);
+            }
+       
+    }
+
     render() {
         let source = this.state.source || { latitude: 17.3850, longitude: 78.4867 }
         let destination = this.state.destination || { latitude: 17.1883, longitude: 79.2000 }
+        let unit = this.state.unitCoordinate || { latitude: 17.1883, longitude: 79.2000 }
+
         return (
             <View style={styles.overallViewContainer}>
 
@@ -148,10 +212,17 @@ export default class DirectionsScreen extends Component {
                         title={"Destination"}
                         description={"hoeeo"}
                     />
+                     <Marker
+                        title={"Unit"}
+                        description={"hoeeo"}
+                        coordinate={unit}
+                    />
                     <MapView.Polyline
                         coordinates={this.state.coords}
                         strokeWidth={3}
                         strokeColor="red" />
+
+                   
 
                 </MapView>
                 <View style={styles.allNonMapThings}>
@@ -177,7 +248,7 @@ export default class DirectionsScreen extends Component {
                     </View>
 
                     <View style={styles.button} >
-                        <TouchableOpacity onPress={this.save}>
+                        <TouchableOpacity onPress={this.mockEventChange}>
                             <Text style={styles.buttonText} >
                                 Start
               </Text>
