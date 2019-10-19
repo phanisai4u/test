@@ -133,7 +133,7 @@ export default class FormLogin extends Component {
                     <Text style={styles.buttonText} onPress={this.saveData}>Login</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.signup}>
-                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Dont have an account yet?.</Text>
+                    <Text style={styles.haveText} onPress={this.navigateToSignUp}>Don't have an account? SignUp here</Text>
                 </TouchableOpacity>
             </View>
 
