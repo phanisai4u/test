@@ -52,7 +52,7 @@ export default class FormLogin extends Component {
 
     navigateToUserDashboard = () => {
         const { navigate } = this.props.navigation;
-        navigate("Dashboard", {
+        navigate("UserDashboard", {
             onGoBack: () => {
             }
         });
