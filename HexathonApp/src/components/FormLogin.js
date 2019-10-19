@@ -114,6 +114,7 @@ export default class FormLogin extends Component {
                             this.navigateToUserDashboard();
                         }
                     }).catch((error) => {
+                        this.setState({ dialogVisible: false })
                         console.log("Login failed::", error);
                        // Alert.alert("Login Failed");
                        // this.props.navigation.goBack();

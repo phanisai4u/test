@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import NetInfo from "@react-native-community/netinfo";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker ,ActivityIndicator} from 'react-native';
 import axios from 'axios';
 import { Dialog } from 'react-native-simple-dialogs';
 
@@ -90,6 +90,7 @@ export default class FormSignup extends Component {
             this.navigateToLogin()
 
         }).catch((error) => {
+            this.setState({ dialogVisible: false })
             console.log("SIgnup failed::", error);
             Alert.alert("Signup Failed");
         });
