@@ -15,7 +15,7 @@ import {
 
 
 import axios from 'axios';
-import MapView, { Marker,AnimatedRegion } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
@@ -38,7 +38,7 @@ export default class DirectionsScreen extends Component {
             coords: [],
             source: undefined,
             destination: undefined,
-            uintCoordinate:undefined,
+            unitCoordinate:undefined,
             eventId: undefined
         }
     }
@@ -50,9 +50,9 @@ export default class DirectionsScreen extends Component {
         if (permission) {
             getCurrentLocation().then((currentLocation) => {
                 console.log("current location:::", currentLocation);
-                this.setState({
-                    uintCoordinate:currentLocation
-                })
+                // this.setState({
+                //     unitCoordinate:currentLocation
+                // })
                 // /this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
             }).catch((error) => {
                 console.log("Failed to fetch location", error);
@@ -88,12 +88,18 @@ export default class DirectionsScreen extends Component {
           locations => {
               console.log(locations[0])
               console.log(locations[0].latitude)
-            this.setState({ uintCoordinate: {
+              let loc = {
                 latitude:locations[0].latitude,
                 longitude:locations[0].longitude
-            } }, () =>{
+            }
+            this.setState({ unitCoordinate: loc }, () =>{
                 console.log("Latest location:")
                 console.log(this.state.unitCoordinate)
+                if (this.state.eventId ) {
+                this.updateUnitLocation(loc)
+                }else{
+                    console.log("No event exits")
+                }
             });
           }
         );
@@ -184,6 +190,7 @@ export default class DirectionsScreen extends Component {
             });
     }
     async getDirections(startLoc, destinationLoc) {
+        console.log("getDirections:::")
         try {
             let resp = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=AIzaSyAsDx3DB19GW8GnFdCMcDQXzWhya1yiYAo`)//`https://maps.googleapis.com/maps/api/directions/json?origin=${ startLoc }&destination=${ destinationLoc }`)
             let respJson = await resp.json();
@@ -198,6 +205,7 @@ export default class DirectionsScreen extends Component {
             return coords
         } catch (error) {
             alert(error)
+            console.log(error);
             return error
         }
     }
@@ -248,18 +256,18 @@ export default class DirectionsScreen extends Component {
     mockEventChange = () => {
       console.log("mockEventChange")
         let count = this.state.coords.length - 1;
-        if (count > 0 && counter >= 0 && counter <= count) {
+        if (count > 0 && counter >= 0 && counter < count) {
             console.log(counter)
             console.log(count)
             setTimeout(() => {
                 let point = this.state.coords[counter]
                 console.log(point)
                 this.setState({
-                    uintCoordinate:new AnimatedRegion( {latitude: point.latitude,
+                    unitCoordinate:{latitude: point.latitude,
                         longitude: point.longitude,
-                    })
+                    }
                }, () => {
-                    console.log(this.state.uintCoordinate);
+                    console.log(this.state.unitCoordinate);
                    this.animate()
                    this.mockEventChange()
                 })
@@ -268,15 +276,35 @@ export default class DirectionsScreen extends Component {
         }
     }
 
+    updateUnitLocation = async (loc) => {
+
+        console.log("updateUnitLocation")
+        let username = await AsyncStorage.getItem('username');
+        let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/updateUnitLocation";
+            let body = {
+                unitId: username,
+                ...loc
+            }
+
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("location updated::", response);
+            }).catch((error) => {
+                console.log("Logout failed::", error);
+                Alert.alert("Logout Failed","Logout Failed. Please try again");
+            });
+
+    } 
+
     animate = () => {
-        const { uintCoordinate } = this.state;
-        // const newCoordinate = {
-        //   latitude: LATITUDE + (Math.random() - 0.5) * (LATITUDE_DELTA / 2),
-        //   longitude: LONGITUDE + (Math.random() - 0.5) * (LONGITUDE_DELTA / 2),
-        // };
+        const { unitCoordinate } = this.state;
+     
 
             if (this.marker) {
-                this.marker._component.animateMarkerToCoordinate(uintCoordinate, 500);
+                this.marker.animateMarkerToCoordinate(unitCoordinate);
             }
        
     }
@@ -314,6 +342,8 @@ export default class DirectionsScreen extends Component {
         let destination = this.state.destination 
         let unit = this.state.unitCoordinate 
         let eventId = this.state.eventId
+
+        console.log(unit)
         return (
             <View style={styles.overallViewContainer}>
 
@@ -325,7 +355,8 @@ export default class DirectionsScreen extends Component {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421
                     }}
-                    region={this.state.locationCoordinates}
+                    showsUserLocation={true}
+                    showsMyLocationButton={true}
                     zoomEnabled={true}
                     scrollEnabled={true}
                 >
@@ -339,12 +370,13 @@ export default class DirectionsScreen extends Component {
                         title={"Destination"}
                         description={"hoeeo"}
                     />}
-                    {unit && <Marker.Animated
+                    {unit && <Marker
                         ref={marker => {
                             this.marker = marker;
                           }}              
                         title={"Unit"}
                         description={"hoeeo"}
+                        image={require('./ems.png')}
                         coordinate={unit}
                     /> }
                     <MapView.Polyline
