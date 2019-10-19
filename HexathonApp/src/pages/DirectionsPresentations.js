@@ -8,9 +8,14 @@ import {
     TouchableOpacity,
     Alert,
     Platform,
+    Image,
+    AsyncStorage
+
 } from 'react-native';
 
-import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
+
+import axios from 'axios';
+import MapView, { Marker,AnimatedRegion } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
@@ -20,19 +25,21 @@ import firebase from 'react-native-firebase'
 // const ASPECT_RATIO = screen.width / screen.height;
 // const LATITUDE_DELTA = 0.0922;
 // const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+let counter = 0
 
 
 export default class DirectionsScreen extends Component {
+
     constructor(props) {
         super(props)
         this.state = {
             coords: [],
             source: { latitude: 17.3850, longitude: 78.4867 },
             destination: { latitude: 17.1883, longitude: 79.2000 },
-            uintCoordinate: {
+            uintCoordinate: new AnimatedRegion({
                 latitude: 17.3850,
                 longitude: 78.4867,
-            },
+            }),
         }
     }
 
@@ -150,20 +157,21 @@ export default class DirectionsScreen extends Component {
     mockEventChange = () => {
       console.log("mockEventChange")
         let count = this.state.coords.length - 1;
-        let counter = 0
         if (count > 0 && counter >= 0 && counter <= count) {
             console.log(counter)
             console.log(count)
             setTimeout(() => {
                 let point = this.state.coords[counter]
-                // this.setState({
-                //     uintCoordinate: new AnimatedRegion({latitude: point[0],
-                //         longitude: point[1],
-                //     })
-               // }, () => {
+                console.log(point)
+                this.setState({
+                    uintCoordinate:new AnimatedRegion( {latitude: point.latitude,
+                        longitude: point.longitude,
+                    })
+               }, () => {
                     console.log(this.state.uintCoordinate);
-                //    this.animate()
-                //})
+                   this.animate()
+                   this.mockEventChange()
+                })
                 counter = counter + 1;
             }, 2000)
         }
@@ -182,11 +190,38 @@ export default class DirectionsScreen extends Component {
        
     }
 
-    render() {
-        let source = this.state.source || { latitude: 17.3850, longitude: 78.4867 }
-        let destination = this.state.destination || { latitude: 17.1883, longitude: 79.2000 }
-        let unit = this.state.unitCoordinate || { latitude: 17.1883, longitude: 79.2000 }
+    performLogout = () => {
+        Alert.alert("Logout", "Are you sure you want to logout?",[
+            {text: 'YES', onPress: async() => {
+                let username = await AsyncStorage.getItem('username');
+                let loginType = await AsyncStorage.getItem('loginType');
+                let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/logout";
+                    let body = {
+                        username: username,
+                        type: loginType
+                    }
 
+                    let headers = {
+                        "Content-Type": "application/json"
+                    }
+
+                    axios.post(url, body, { headers: headers }).then(async(response) => {
+                        console.log("Logout successful::", response);
+                        this.props.navigation.goBack();
+                    }).catch((error) => {
+                        console.log("Logout failed::", error);
+                        Alert.alert("Logout Failed","Logout Failed. Please try again");
+                    });
+            }}, {text: 'NO', onPress: () => {
+
+            }
+        }
+        ],{cancelable: false}  );
+    }
+    render() {
+        let source = this.state.source 
+        let destination = this.state.destination 
+        let unit = this.state.unitCoordinate 
         return (
             <View style={styles.overallViewContainer}>
 
@@ -202,21 +237,24 @@ export default class DirectionsScreen extends Component {
                     zoomEnabled={true}
                     scrollEnabled={true}
                 >
-                    <Marker
+                  {source &&  <Marker
                         coordinate={source}
                         title={"Source"}
                         description={"hoeeo"}
-                    />
-                    <Marker
+                  /> }
+                   {destination && <Marker
                         coordinate={destination}
                         title={"Destination"}
                         description={"hoeeo"}
-                    />
-                     <Marker
+                    />}
+                    {unit && <Marker.Animated
+                        ref={marker => {
+                            this.marker = marker;
+                          }}              
                         title={"Unit"}
                         description={"hoeeo"}
                         coordinate={unit}
-                    />
+                    /> }
                     <MapView.Polyline
                         coordinates={this.state.coords}
                         strokeWidth={3}
@@ -226,6 +264,11 @@ export default class DirectionsScreen extends Component {
 
                 </MapView>
                 <View style={styles.allNonMapThings}>
+                    
+                    <TouchableOpacity style={{width:"100%",justifyContent:'flex-end'}} onPress={this.performLogout}>
+                        <Image style={{ width: 40, height: 40,margin:5,backgroundColor:'#EDF2F2', alignSelf:'flex-end' }}
+                            source={require('../images/logout.png')} />
+                    </TouchableOpacity>
                     <View style={styles.inputContainer}>
                         <TouchableOpacity onPress={this.onSourceLocationPressed}>
                             <TextInput
@@ -250,7 +293,7 @@ export default class DirectionsScreen extends Component {
                     <View style={styles.button} >
                         <TouchableOpacity onPress={this.mockEventChange}>
                             <Text style={styles.buttonText} >
-                                Start
+                                Start Event
               </Text>
                         </TouchableOpacity>
                     </View>

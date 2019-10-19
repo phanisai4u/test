@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Image, Picker } from 'react-native';
 import axios from 'axios';
 //import {Actions} from 'react-native-router-flux';
 
@@ -82,7 +82,11 @@ export default class FormSignup extends Component {
         const { signUpType } = this.state;
         return (
             <View style={styles.container}>
-
+                <View style={{flexDirection:"row",width:300, justifyContent:'center', margin:20}}>
+                    <Image style={{ width: 60, height: 60 }}
+                        source={require('../images/siren.jpg')} />
+                    <Text style={{fontSize:24, fontWeight:"bold", width:250, marginLeft:10, textAlignVertical:"center", textAlign:'center'}}>Emergency Management Services</Text>
+                </View>
                 <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10 }}>
                     <Picker style={{ width: "100%" }} selectedValue={this.state.signUpType} onValueChange={this.updateSignUpType}>
                         <Picker.Item label="Select Signup Type" value="default" />
@@ -172,10 +176,10 @@ export default class FormSignup extends Component {
                             ref={(input) => this.password = input}
                         />
                     </View> : null}
-
-                <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText} onPress={this.saveData}>Sign Up</Text>
-                </TouchableOpacity>
+                {signUpType != "default" ?
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText} onPress={this.saveData}>Sign Up</Text>
+                    </TouchableOpacity> : null}
             </View>
 
         )
