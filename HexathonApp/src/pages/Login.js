@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, NetInfo } from 'react-native';
 
 //import {Actions} from 'react-native-router-flux';
 
@@ -11,8 +11,12 @@ export default class Login extends Component {
         //Actions.signup()
     }
 
+    
+    
+
     render() {
         return(
+            
                 <View style={styles.container}>
                 <Text>{'\n'}</Text>
                 <Text>{'\n'}</Text>

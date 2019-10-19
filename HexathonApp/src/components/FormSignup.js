@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyboard, Picker} from 'react-native';
+import NetInfo from "@react-native-community/netinfo";
+//import {NetInfo} from 'react-native-netinfo';
 import axios from 'axios';
 //import {Actions} from 'react-native-router-flux';
 
@@ -18,11 +20,40 @@ export default class FormSignup extends Component {
             userContactNumber: '',
             userUsername:'',
             userPassword:'',
-            signUpType: 'default'
+            signUpType: 'default',
+            isNetworkAvailable:false
         }
     }
+    componentDidMount() {
+        NetInfo.isConnected.addEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+       
+        NetInfo.isConnected.fetch().done((isConnected) => {
+            this.setState({isNetworkAvailable : isConnected})
+        });
+      }
+      
+      componentWillUnmount() {
+        NetInfo.isConnected.removeEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+     
+      }
+     
+      _handleConnectivityChange = (isConnected) => {
+        this.setState({isNetworkAvailable : isConnected})
+      };
+   
 
     saveData = async () => {
+        console.log("Connection status is "+this.state.isNetworkAvailable);
+       if(!this.state.connection_Status){
+            Alert.alert("Network Connection","Please check your internet connectivity");
+            return;
+        }
         let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/signup";
         let body = null;
         let fcmToken = await AsyncStorage.getItem('fcmToken');
@@ -53,10 +84,12 @@ export default class FormSignup extends Component {
 
         axios.post(url, body, {headers:headers}).then((response)=>{
             console.log("SIgnup successful::", response);
+            Alert.alert("Signup successful");
             this.navigateToLogin()
 
         }).catch((error)=>{
             console.log("SIgnup failed::", error);
+            Alert.alert("Signup Failed");
         });
     }
 

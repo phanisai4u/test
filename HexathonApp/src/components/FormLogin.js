@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker } from 'react-native';
+import NetInfo from "@react-native-community/netinfo";
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import axios from 'axios';
@@ -11,9 +12,32 @@ export default class FormLogin extends Component {
         this.state = {
             username: '',
             password: '',
-            loginType: 'default'
+            loginType: 'default',
+            isNetworkAvailable:false
         }
     }
+    componentDidMount() {
+        NetInfo.isConnected.addEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+       
+        NetInfo.isConnected.fetch().done((isConnected) => {
+            this.setState({isNetworkAvailable : isConnected})
+        });
+      }
+      
+      componentWillUnmount() {
+        NetInfo.isConnected.removeEventListener(
+            'connectionChange',
+            this._handleConnectivityChange
+        );
+     
+      }
+     
+      _handleConnectivityChange = (isConnected) => {
+        this.setState({isNetworkAvailable : isConnected})
+      };
 
     navigateToSignUp = () => {
         const { navigate } = this.props.navigation;
@@ -42,6 +66,13 @@ export default class FormLogin extends Component {
     }
 
     saveData = async () => {
+        console.log("Connection status is "+this.state.isNetworkAvailable);
+        
+        if(!this.state.isNetworkAvailable){
+            Alert.alert("Network Connection","Please check your internet connectivity");
+            return;
+        }
+        
         const { username, password, loginType } = this.state;
         console.log("Username:", username, "Password::", password, "LoginType::", loginType);
         if (username == "" || password == "" || loginType == "default") {
@@ -78,13 +109,18 @@ export default class FormLogin extends Component {
                         }
                     }).catch((error) => {
                         console.log("Login failed::", error);
+                       // Alert.alert("Login Failed");
+                       // this.props.navigation.goBack();
                     });
 
                 }).catch((error) => {
                     console.log("Failed to fetch location", error);
+                   // Alert.alert("Failed to fetch location");
+                   // this.props.navigation.goBack();
                 })
             } else {
                 Alert.alert("Failed to fetch location. Please try again");
+               // this.props.navigation.goBack();
             }
         }
 
