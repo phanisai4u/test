@@ -21,34 +21,88 @@ import {
 } from 'react-native';
 import Sound from 'react-native-sound';
 import firebase from 'react-native-firebase';
-import {createAppContainer} from 'react-navigation';
-import {createStackNavigator} from 'react-navigation-stack';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
 import FormLogin from './src/components/FormLogin';
 import FormSignup from './src/components/FormSignup';
 import DirectionsScreen from './src/pages/DirectionsPresentations'
 import LocationSeachPage from "./src/components/LocationSearchPage";
-import UserDashboardScreen  from "./src/pages/UserDashboard"
+import UserDashboardScreen from "./src/pages/UserDashboard"
 
 
 const MainNavigator = createStackNavigator({
-  Login: {screen: FormLogin},
-  SignUp: {screen: FormSignup},
-  Dashboard: {screen: DirectionsScreen},
-  LocationSeachPage: {screen: LocationSeachPage},
-  UserDashboard: {screen:UserDashboardScreen}
+  Login: {
+    screen: FormLogin,
+    navigationOptions: {
+      title: 'Login',
+      headerTitleStyle: {
+        textAlign: "center",
+        color:"#4f83cc",
+        flex: 1
+      }
+    }
+  },
+  SignUp: {
+    screen: FormSignup,
+    navigationOptions: {
+      title: 'Signup',
+      headerTitleStyle: {
+        textAlign: "center",
+        color:"#4f83cc",
+        flex: 1
+      }
+    }
+  },
+  Dashboard: {
+    screen: DirectionsScreen,
+    navigationOptions: {
+      title: 'Dashboard',
+      headerTitleStyle: {
+        textAlign: "center",
+        color:"#4f83cc",
+        flex: 1
+      },
+      headerLeft: null
+    }
+  },
+  LocationSeachPage: {
+    screen: LocationSeachPage,
+    navigationOptions: {
+      title: 'Search location',
+      headerTitleStyle: {
+        textAlign: "center",
+        color:"#4f83cc",
+        flex: 1
+      }
+    }
+  },
+  UserDashboard: {
+    screen: UserDashboardScreen,
+    navigationOptions: {
+      title: 'Dashboard',
+      headerTitleStyle: {
+        textAlign: "center",
+        color:"#4f83cc",
+        flex: 1
+      },
+      headerLeft: null
+    }
+  }
 },
-{
-  initialRouteName: 'Login',
-});
+
+  {
+    initialRouteName: 'Login',
+  },
+);
 
 
 
 export default class App extends Component {
 
-  checkPermission = async() => {
+  checkPermission = async () => {
     const enabled = await firebase.messaging().hasPermission();
-    if(enabled){
+    if (enabled) {
       this.getToken();
     }
     else {
@@ -56,17 +110,17 @@ export default class App extends Component {
     };
   }
 
-    //2
- requestPermission = async()=> {
-  try {
+  //2
+  requestPermission = async () => {
+    try {
       await firebase.messaging().requestPermission();
       // User has authorised
       this.getToken();
-  } catch (error) {
+    } catch (error) {
       // User has rejected permissions
       console.log('permission rejected');
+    }
   }
-}
   notificationListener: () => any;
   notificationOpenedListener: () => any;
   messageListener: () => any;
@@ -76,74 +130,74 @@ export default class App extends Component {
     this.createNotificationListeners();
   }
 
-    //Remove listeners allocated in createNotificationListeners()
-componentWillUnmount() {
-  this.notificationListener();
-  this.notificationOpenedListener();
-}
+  //Remove listeners allocated in createNotificationListeners()
+  componentWillUnmount() {
+    this.notificationListener();
+    this.notificationOpenedListener();
+  }
 
   async getToken() {
     let fcmToken = await AsyncStorage.getItem('fcmToken');
     if (!fcmToken) {
-        fcmToken = await firebase.messaging().getToken();
-        if (fcmToken) {
-            // user has a device token
-            await AsyncStorage.setItem('fcmToken', fcmToken);
-        }
+      fcmToken = await firebase.messaging().getToken();
+      if (fcmToken) {
+        // user has a device token
+        await AsyncStorage.setItem('fcmToken', fcmToken);
+      }
     }
     console.log("fcmToken", fcmToken);
   }
 
-  createNotificationListeners = async() => {
+  createNotificationListeners = async () => {
     /*
     * Triggered when a particular notification has been received in foreground
     * */
     this.notificationListener = firebase.notifications().onNotification((notification) => {
       // console.log("Inside onNotification::", notification);
-         const { title, body } = notification;
+      const { title, body } = notification;
       var whoosh = new Sound('buzzer.mp3', Sound.MAIN_BUNDLE, (error) => {
         if (error) {
           console.log('failed to load the sound', error);
           return;
         }
-      
 
-      whoosh.play((success) => {
-        if (success) {
-          console.log('successfully finished playing');
-        } else {
-          console.log('playback failed due to audio decoding errors');
-        }
+
+        whoosh.play((success) => {
+          if (success) {
+            console.log('successfully finished playing');
+          } else {
+            console.log('playback failed due to audio decoding errors');
+          }
+        });
       });
-    });
-    whoosh.setNumberOfLoops(-1);
-    whoosh.stop(() => {
-      // Note: If you want to play a sound after stopping and rewinding it,
-      // it is important to call play() in a callback.
-      whoosh.play();
-    });
-    whoosh.release();
+      whoosh.setNumberOfLoops(-1);
+      whoosh.stop(() => {
+        // Note: If you want to play a sound after stopping and rewinding it,
+        // it is important to call play() in a callback.
+        whoosh.play();
+      });
+      whoosh.release();
 
-        this.showAlert(title, body);
+      this.showAlert(title, body);
     });
-  
+
     /*
     * If your app is in background, you can listen for when a notification is clicked / tapped / opened as follows:
     * */
     this.notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
       console.log("Inside onNotificationOpened::", notificationOpen);
-        const { title, body } = notificationOpen.notification;
-        this.showAlert(title, body);
+      const { title, body } = notificationOpen.notification;
+      this.showAlert(title, body);
     });
-  
+
     /*
     * If your app is closed, you can check if it was opened by a notification being clicked / tapped / opened as follows:
     * */
     const notificationOpen = await firebase.notifications().getInitialNotification();
     if (notificationOpen) {
       console.log("Inside onNotificationOpened::", notificationOpen);
-        const { title, body } = notificationOpen.notification;
-        this.showAlert(title, body);
+      const { title, body } = notificationOpen.notification;
+      this.showAlert(title, body);
     }
     /*
     * Triggered for data only payload in foreground
@@ -159,19 +213,19 @@ componentWillUnmount() {
     Alert.alert(
       title, body,
       [
-          { text: 'OK', onPress: () => console.log('OK Pressed') },
+        { text: 'OK', onPress: () => console.log('OK Pressed') },
       ],
       { cancelable: false },
     );
   }
 
-  render(){
-    
+  render() {
+
     const AppContainer = createAppContainer(MainNavigator);
 
-  return (
-    <AppContainer/>
-  );
+    return (
+      <AppContainer />
+    );
   }
 };
 
@@ -182,5 +236,5 @@ const styles = StyleSheet.create({
   body: {
     backgroundColor: "white",
   }
-  
+
 });

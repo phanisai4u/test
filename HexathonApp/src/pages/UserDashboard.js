@@ -78,7 +78,22 @@ export default class UserDashboardScreen extends Component {
          whoosh.release();
  
          Alert.alert(title, body, [{text:'OK', onPress:()=>{
-           
+            let obj = JSON.parse(body)
+             let source = obj.source.location
+             let destination = obj.destination.location
+             let unit = obj.currentLocation
+             if (source && destination && unit) {
+            this.setState({
+                source:source,
+                destination:destination,
+                unitCoordinate:unit
+            },()=>{
+                console.log("1111111")
+                this.getNewDirectionOnTapNotifications()
+            }) }else{
+                console.log("It not a trip notification")
+            }
+            
          }}]);
        }
  
@@ -162,7 +177,7 @@ export default class UserDashboardScreen extends Component {
     }
 
 
-    getNewDirectionOnChangeLocations = () => {
+    getNewDirectionOnTapNotifications = () => {
    
         if (this.state.source && this.state.destination) {
             let src = `${this.state.source.latitude}, ${this.state.source.longitude}`;
