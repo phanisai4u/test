@@ -53,11 +53,21 @@ export default class FormSignup extends Component {
 
         axios.post(url, body, {headers:headers}).then((response)=>{
             console.log("SIgnup successful::", response);
+            this.navigateToLogin()
+
         }).catch((error)=>{
             console.log("SIgnup failed::", error);
         });
     }
 
+
+    navigateToLogin = () => {
+        const { navigate } = this.props.navigation;
+        navigate("Login", {
+            onGoBack: () => {
+            }
+        });
+    }
     showData = async () => {
         let loginDetails = await AsyncStorage.getItem('loginDetails');
         let ld = JSON.parse(loginDetails);
