@@ -7,8 +7,10 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
+    Image,
+    AsyncStorage
 } from 'react-native';
-
+import axios from 'axios';
 import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import {getCurrentLocation} from '../services/LocationService';
@@ -120,6 +122,34 @@ export default class DirectionsScreen extends Component {
         });
     }
 
+    performLogout = () => {
+        Alert.alert("Logout", "Are you sure you want to logout?",[
+            {text: 'YES', onPress: async() => {
+                let username = await AsyncStorage.getItem('username');
+                let loginType = await AsyncStorage.getItem('loginType');
+                let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/logout";
+                    let body = {
+                        username: username,
+                        type: loginType
+                    }
+
+                    let headers = {
+                        "Content-Type": "application/json"
+                    }
+
+                    axios.post(url, body, { headers: headers }).then(async(response) => {
+                        console.log("Logout successful::", response);
+                        this.props.navigation.goBack();
+                    }).catch((error) => {
+                        console.log("Logout failed::", error);
+                        Alert.alert("Logout Failed","Logout Failed. Please try again");
+                    });
+            }}, {text: 'NO', onPress: () => {
+
+            }
+        }
+        ],{cancelable: false}  );
+    }
     render() {
         let source = this.state.source || { latitude: 17.3850, longitude: 78.4867 }
         let destination = this.state.destination || { latitude: 17.1883, longitude: 79.2000 }
@@ -155,6 +185,11 @@ export default class DirectionsScreen extends Component {
 
                 </MapView>
                 <View style={styles.allNonMapThings}>
+                    
+                    <TouchableOpacity style={{width:"100%",justifyContent:'flex-end'}} onPress={this.performLogout}>
+                        <Image style={{ width: 40, height: 40,margin:5,backgroundColor:'#EDF2F2', alignSelf:'flex-end' }}
+                            source={require('../images/logout.png')} />
+                    </TouchableOpacity>
                     <View style={styles.inputContainer}>
                         <TouchableOpacity onPress={this.onSourceLocationPressed}>
                             <TextInput
