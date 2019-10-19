@@ -21,7 +21,7 @@ import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import firebase from 'react-native-firebase'
 import RNLocation from "react-native-location";
-
+import Sound from 'react-native-sound';
 // const screen = Dimensions.get('window');
 
 // const ASPECT_RATIO = screen.width / screen.height;
@@ -42,10 +42,48 @@ export default class UserDashboardScreen extends Component {
             eventId: undefined
         }
     }
-
+    notificationListener = () => {};
     async componentDidMount() {
         // find your origin and destination point coordinates and pass it to our method.
         // I am using Bursa,TR -> Istanbul,TR for this example
+        /*
+    * Triggered when a particular notification has been received in foreground
+    * */
+    this.notificationListener = firebase.notifications().onNotification(async(notification) => {
+        console.log("Inside onNotification in UserDashboard::", notification);
+          const { title, body } = notification;
+       let loginType = await AsyncStorage.getItem('loginType');
+       if (loginType == "user") {
+         var whoosh = new Sound('buzzer.mp3', Sound.MAIN_BUNDLE, (error) => {
+           if (error) {
+             console.log('failed to load the sound', error);
+             return;
+           }
+ 
+ 
+           whoosh.play((success) => {
+             if (success) {
+               console.log('successfully finished playing');
+             } else {
+               console.log('playback failed due to audio decoding errors');
+             }
+           });
+         });
+         whoosh.setNumberOfLoops(-1);
+         whoosh.stop(() => {
+           // Note: If you want to play a sound after stopping and rewinding it,
+           // it is important to call play() in a callback.
+           whoosh.play();
+         });
+         whoosh.release();
+ 
+         Alert.alert(title, body, [{text:'OK', onPress:()=>{
+           
+         }}]);
+       }
+ 
+     });
+
         const permission = await PermissionsHelper.requestPermission("location", "Enable Location Services", "Please go to settings and enable location services");
         if (permission) {
             getCurrentLocation().then((currentLocation) => {
