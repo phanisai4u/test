@@ -3,7 +3,8 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity
+  TouchableOpacity,
+  NetInfo
 } from 'react-native';
 
 import FormSignup from '../components/FormSignup';
@@ -15,12 +16,13 @@ export default class Signup extends Component {
     goBack() {
         //Actions.pop()
     }
-
+  
     render() {
         return(
             <View style={styles.container}>
                 <Text>{'\n'}</Text>
                 <Text>{'\n'}</Text>
+                alert(<Text>You are {this.state.connection_Status} </Text>);
                 <FormSignup type="Signup"/>
                 <View style={styles.signupTextCont}> 
                     <Text style={styles.signupText}>Already have an account? </Text>
