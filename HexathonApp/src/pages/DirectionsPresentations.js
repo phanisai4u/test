@@ -20,6 +20,8 @@ import Polyline from '@mapbox/polyline';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import firebase from 'react-native-firebase'
+import RNLocation from "react-native-location";
+
 // const screen = Dimensions.get('window');
 
 // const ASPECT_RATIO = screen.width / screen.height;
@@ -58,14 +60,58 @@ export default class DirectionsScreen extends Component {
         } else {
             Alert.alert("Failed to fetch location. Please try again");
         }
+
+        RNLocation.configure({
+            distanceFilter: 5.0
+          }).then(() => RNLocation.requestPermission({
+            ios: "whenInUse",
+            android: {
+              detail: "fine",
+              rationale: {
+                title: "Location permission",
+                message: "We use your location to demo the project",
+                buttonPositive: "OK",
+                buttonNegative: "Cancel"
+              }
+            }
+          })).then(granted => {
+            if (granted) {
+              this._startUpdatingLocation();
+            }
+          });
     }
+    
+
+    
+      _startUpdatingLocation = () => {
+        this.locationSubscription = RNLocation.subscribeToLocationUpdates(
+          locations => {
+              console.log(locations[0])
+              console.log(locations[0].latitude)
+            this.setState({ uintCoordinate: {
+                latitude:locations[0].latitude,
+                longitude:locations[0].longitude
+            } }, () =>{
+                console.log("Latest location:")
+                console.log(this.state.unitCoordinate)
+            });
+          }
+        );
+      };
+    
+      _stopUpdatingLocation = () => {
+        this.locationSubscription && this.locationSubscription();
+        this.setState({ location: null });
+      };
+    
 
     startEvent = async () => {
         let username = await AsyncStorage.getItem('username');
-
+        let r = Math.random().toString(36).substring(7);
+        if (this.state.source && this.state.destination) {
         const event = {
             "createdBy": username,
-            "eventId":"12233444",
+            "eventId":r,
             "currentLocation": this.state.unitCoordinate,
             "destination": {
                 "location": this.state.destination,
@@ -97,7 +143,10 @@ export default class DirectionsScreen extends Component {
             }).catch((error) => {
                 console.log(error)
                 Alert.alert("Error","event create Failed. Please try again");
-            });
+            });}else{
+                Alert.alert("Please Pick source and destination...!");
+  
+            }
     }
 
     endEvent = async () => {
@@ -105,7 +154,7 @@ export default class DirectionsScreen extends Component {
 
         const event = {
             "createdBy": username,
-            "eventId":"12233444",
+            "eventId":this.state.eventId,
             "unit": username
         }
 
