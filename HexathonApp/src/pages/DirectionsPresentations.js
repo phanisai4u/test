@@ -40,6 +40,7 @@ export default class DirectionsScreen extends Component {
                 latitude: 17.3850,
                 longitude: 78.4867,
             }),
+            eventId: undefined
         }
     }
 
@@ -59,39 +60,83 @@ export default class DirectionsScreen extends Component {
         }
     }
 
-    save = async () => {
+    startEvent = async () => {
+        let username = await AsyncStorage.getItem('username');
+
         const event = {
-            "createdBy": "test_user2",
+            "createdBy": username,
+            "eventId":"12233444",
             "currentLocation": {
                 "latitude": "",
                 "longitude": ""
             },
             "destination": {
-                "location": {
-                    "latitude": "",
-                    "longitude": ""
-                },
-                "name": "d1"
+                "location": this.state.destination,
+                "name": this.state.destinationLocationInput
             },
             "source": {
-                "location": {
-                    "latitude": "",
-                    "longitude": ""
-                },
-                "name": "s1"
+                "location": this.state.source,
+                "name": this.state.sourceLocationInput
             },
             "status": "RUNNING",
-            "unit": "unit2"
+            "unit": username
         }
 
-        firebase.database().ref('events').push(event).then(value => {
-            console.log(value)
+           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/startTrip";
+            let body = {
+                ...event
+            }
 
-        }).catch(error => {
-            console.log(error)
-        })
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("Trip started successful:", response);
+                this.setState({
+                    eventId:event.eventId
+                })
+                
+            }).catch((error) => {
+                console.log(error)
+                Alert.alert("Error","event create Failed. Please try again");
+            });
     }
 
+    endEvent = async () => {
+        let username = await AsyncStorage.getItem('username');
+
+        const event = {
+            "createdBy": username,
+            "eventId":"12233444",
+            "unit": username
+        }
+
+           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/startTrip";
+            let body = {
+                ...event
+            }
+
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("Trip end successful:", response);
+                this.setState({
+                    eventId:undefined,
+                    destination:undefined,
+                    source:undefined,
+                    sourceLocationInput:"",
+                    destinationLocationInput:"",
+                    coords:[]
+                })
+                
+            }).catch((error) => {
+                console.log(error)
+                Alert.alert("Error","event end Failed. Please try again");
+            });
+    }
     async getDirections(startLoc, destinationLoc) {
         try {
             let resp = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=AIzaSyAsDx3DB19GW8GnFdCMcDQXzWhya1yiYAo`)//`https://maps.googleapis.com/maps/api/directions/json?origin=${ startLoc }&destination=${ destinationLoc }`)
@@ -222,6 +267,7 @@ export default class DirectionsScreen extends Component {
         let source = this.state.source 
         let destination = this.state.destination 
         let unit = this.state.unitCoordinate 
+        let eventId = this.state.eventId
         return (
             <View style={styles.overallViewContainer}>
 
@@ -269,6 +315,7 @@ export default class DirectionsScreen extends Component {
                         <Image style={{ width: 40, height: 40,margin:5,backgroundColor:'#EDF2F2', alignSelf:'flex-end' }}
                             source={require('../images/logout.png')} />
                     </TouchableOpacity>
+                    { !eventId &&
                     <View style={styles.inputContainer}>
                         <TouchableOpacity onPress={this.onSourceLocationPressed}>
                             <TextInput
@@ -288,15 +335,22 @@ export default class DirectionsScreen extends Component {
                                 editable={false}
                             />
                         </TouchableOpacity>
-                    </View>
+                        </View> }
 
-                    <View style={styles.button} >
-                        <TouchableOpacity onPress={this.mockEventChange}>
+                      {  eventId ? <View style={styles.button} >
+                        <TouchableOpacity onPress={this.endEvent}>
                             <Text style={styles.buttonText} >
-                                Start Event
-              </Text>
+                                End Event
+                           </Text>
                         </TouchableOpacity>
                     </View>
+                    :   <View style={styles.button} >
+                    <TouchableOpacity onPress={this.startEvent}>
+                        <Text style={styles.buttonText} >
+                            Start Event
+                       </Text>
+                    </TouchableOpacity>
+                    </View> }
                 </View>
             </View>
         );
@@ -374,8 +428,8 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 24,
         fontWeight: 'bold',
-
     },
+    
     wrapper: {
         height: '100%',
         display: 'flex',
