@@ -15,11 +15,13 @@ import {
 
 
 import axios from 'axios';
-import MapView, { Marker,AnimatedRegion } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import firebase from 'react-native-firebase'
+import RNLocation from "react-native-location";
+
 // const screen = Dimensions.get('window');
 
 // const ASPECT_RATIO = screen.width / screen.height;
@@ -35,12 +37,10 @@ export default class DirectionsScreen extends Component {
         this.state = {
             isNetworkAvailable:false,
             coords: [],
-            source: { latitude: 17.3850, longitude: 78.4867 },
-            destination: { latitude: 17.1883, longitude: 79.2000 },
-            uintCoordinate: new AnimatedRegion({
-                latitude: 17.3850,
-                longitude: 78.4867,
-            }),
+            source: undefined,
+            destination: undefined,
+            unitCoordinate:undefined,
+            eventId: undefined
         }
     }
    /* 
@@ -83,49 +83,147 @@ export default class DirectionsScreen extends Component {
         if (permission) {
             getCurrentLocation().then((currentLocation) => {
                 console.log("current location:::", currentLocation);
-                this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
+                // this.setState({
+                //     unitCoordinate:currentLocation
+                // })
+                // /this.getDirections("17.3850, 78.4867", "17.1883,79.2000");
             }).catch((error) => {
                 console.log("Failed to fetch location", error);
             })
         } else {
             Alert.alert("Failed to fetch location. Please try again");
         }
-    }
 
-    save = async () => {
+        RNLocation.configure({
+            distanceFilter: 5.0
+          }).then(() => RNLocation.requestPermission({
+            ios: "whenInUse",
+            android: {
+              detail: "fine",
+              rationale: {
+                title: "Location permission",
+                message: "We use your location to demo the project",
+                buttonPositive: "OK",
+                buttonNegative: "Cancel"
+              }
+            }
+          })).then(granted => {
+            if (granted) {
+              this._startUpdatingLocation();
+            }
+          });
+    }
+    
+
+    
+      _startUpdatingLocation = () => {
+        this.locationSubscription = RNLocation.subscribeToLocationUpdates(
+          locations => {
+              console.log(locations[0])
+              console.log(locations[0].latitude)
+              let loc = {
+                latitude:locations[0].latitude,
+                longitude:locations[0].longitude
+            }
+            this.setState({ unitCoordinate: loc }, () =>{
+                console.log("Latest location:")
+                console.log(this.state.unitCoordinate)
+                if (this.state.eventId ) {
+                this.updateUnitLocation(loc)
+                }else{
+                    console.log("No event exits")
+                }
+            });
+          }
+        );
+      };
+    
+      _stopUpdatingLocation = () => {
+        this.locationSubscription && this.locationSubscription();
+        this.setState({ location: null });
+      };
+    
+
+    startEvent = async () => {
+        let username = await AsyncStorage.getItem('username');
+        let r = Math.random().toString(36).substring(7);
+        if (this.state.source && this.state.destination) {
         const event = {
-            "createdBy": "test_user2",
-            "currentLocation": {
-                "latitude": "",
-                "longitude": ""
-            },
+            "createdBy": username,
+            "eventId":r,
+            "currentLocation": this.state.unitCoordinate,
             "destination": {
-                "location": {
-                    "latitude": "",
-                    "longitude": ""
-                },
-                "name": "d1"
+                "location": this.state.destination,
+                "name": this.state.destinationLocationInput
             },
             "source": {
-                "location": {
-                    "latitude": "",
-                    "longitude": ""
-                },
-                "name": "s1"
+                "location": this.state.source,
+                "name": this.state.sourceLocationInput
             },
             "status": "RUNNING",
-            "unit": "unit2"
+            "unit": username
         }
 
-        firebase.database().ref('events').push(event).then(value => {
-            console.log(value)
+           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/startTrip";
+            let body = {
+                ...event
+            }
 
-        }).catch(error => {
-            console.log(error)
-        })
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("Trip started successful:", response);
+                this.setState({
+                    eventId:event.eventId
+                })
+                
+            }).catch((error) => {
+                console.log(error)
+                Alert.alert("Error","event create Failed. Please try again");
+            });}else{
+                Alert.alert("Please Pick source and destination...!");
+  
+            }
     }
 
+    endEvent = async () => {
+        let username = await AsyncStorage.getItem('username');
+
+        const event = {
+            "createdBy": username,
+            "eventId":this.state.eventId,
+            "unit": username
+        }
+
+           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/startTrip";
+            let body = {
+                ...event
+            }
+
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("Trip end successful:", response);
+                this.setState({
+                    eventId:undefined,
+                    destination:undefined,
+                    source:undefined,
+                    sourceLocationInput:"",
+                    destinationLocationInput:"",
+                    coords:[]
+                })
+                
+            }).catch((error) => {
+                console.log(error)
+                Alert.alert("Error","event end Failed. Please try again");
+            });
+    }
     async getDirections(startLoc, destinationLoc) {
+        console.log("getDirections:::")
         try {
             let resp = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=AIzaSyAsDx3DB19GW8GnFdCMcDQXzWhya1yiYAo`)//`https://maps.googleapis.com/maps/api/directions/json?origin=${ startLoc }&destination=${ destinationLoc }`)
             let respJson = await resp.json();
@@ -140,6 +238,7 @@ export default class DirectionsScreen extends Component {
             return coords
         } catch (error) {
             alert(error)
+            console.log(error);
             return error
         }
     }
@@ -196,18 +295,18 @@ export default class DirectionsScreen extends Component {
             return;
         }
         let count = this.state.coords.length - 1;
-        if (count > 0 && counter >= 0 && counter <= count) {
+        if (count > 0 && counter >= 0 && counter < count) {
             console.log(counter)
             console.log(count)
             setTimeout(() => {
                 let point = this.state.coords[counter]
                 console.log(point)
                 this.setState({
-                    uintCoordinate:new AnimatedRegion( {latitude: point.latitude,
+                    unitCoordinate:{latitude: point.latitude,
                         longitude: point.longitude,
-                    })
+                    }
                }, () => {
-                    console.log(this.state.uintCoordinate);
+                    console.log(this.state.unitCoordinate);
                    this.animate()
                    this.mockEventChange()
                 })
@@ -216,15 +315,35 @@ export default class DirectionsScreen extends Component {
         }
     }
 
+    updateUnitLocation = async (loc) => {
+
+        console.log("updateUnitLocation")
+        let username = await AsyncStorage.getItem('username');
+        let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/updateUnitLocation";
+            let body = {
+                unitId: username,
+                ...loc
+            }
+
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            axios.post(url, body, { headers: headers }).then(async(response) => {
+                console.log("location updated::", response);
+            }).catch((error) => {
+                console.log("Logout failed::", error);
+                Alert.alert("Logout Failed","Logout Failed. Please try again");
+            });
+
+    } 
+
     animate = () => {
-        const { uintCoordinate } = this.state;
-        // const newCoordinate = {
-        //   latitude: LATITUDE + (Math.random() - 0.5) * (LATITUDE_DELTA / 2),
-        //   longitude: LONGITUDE + (Math.random() - 0.5) * (LONGITUDE_DELTA / 2),
-        // };
+        const { unitCoordinate } = this.state;
+     
 
             if (this.marker) {
-                this.marker._component.animateMarkerToCoordinate(uintCoordinate, 500);
+                this.marker.animateMarkerToCoordinate(unitCoordinate);
             }
        
     }
@@ -265,6 +384,9 @@ export default class DirectionsScreen extends Component {
         let source = this.state.source 
         let destination = this.state.destination 
         let unit = this.state.unitCoordinate 
+        let eventId = this.state.eventId
+
+        console.log(unit)
         return (
             <View style={styles.overallViewContainer}>
 
@@ -276,7 +398,8 @@ export default class DirectionsScreen extends Component {
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421
                     }}
-                    region={this.state.locationCoordinates}
+                    showsUserLocation={true}
+                    showsMyLocationButton={true}
                     zoomEnabled={true}
                     scrollEnabled={true}
                 >
@@ -290,12 +413,13 @@ export default class DirectionsScreen extends Component {
                         title={"Destination"}
                         description={"hoeeo"}
                     />}
-                    {unit && <Marker.Animated
+                    {unit && <Marker
                         ref={marker => {
                             this.marker = marker;
                           }}              
                         title={"Unit"}
                         description={"hoeeo"}
+                        image={require('./ems.png')}
                         coordinate={unit}
                     /> }
                     <MapView.Polyline
@@ -312,6 +436,7 @@ export default class DirectionsScreen extends Component {
                         <Image style={{ width: 40, height: 40,margin:5,backgroundColor:'#EDF2F2', alignSelf:'flex-end' }}
                             source={require('../images/logout.png')} />
                     </TouchableOpacity>
+                    { !eventId &&
                     <View style={styles.inputContainer}>
                         <TouchableOpacity onPress={this.onSourceLocationPressed}>
                             <TextInput
@@ -331,15 +456,22 @@ export default class DirectionsScreen extends Component {
                                 editable={false}
                             />
                         </TouchableOpacity>
-                    </View>
+                        </View> }
 
-                    <View style={styles.button} >
-                        <TouchableOpacity onPress={this.mockEventChange}>
+                      {  eventId ? <View style={styles.button} >
+                        <TouchableOpacity onPress={this.endEvent}>
                             <Text style={styles.buttonText} >
-                                Start Event
-              </Text>
+                                End Event
+                           </Text>
                         </TouchableOpacity>
                     </View>
+                    :   <View style={styles.button} >
+                    <TouchableOpacity onPress={this.startEvent}>
+                        <Text style={styles.buttonText} >
+                            Start Event
+                       </Text>
+                    </TouchableOpacity>
+                    </View> }
                 </View>
             </View>
         );
@@ -417,8 +549,8 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 24,
         fontWeight: 'bold',
-
     },
+    
     wrapper: {
         height: '100%',
         display: 'flex',
