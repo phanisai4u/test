@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Picker,Image } from 'react-native';
 import { getCurrentLocation } from '../services/LocationService';
 import { PermissionsHelper } from '../services/Functions/PermissionHelper';
 import axios from 'axios';
@@ -67,6 +67,14 @@ export default class FormLogin extends Component {
     render() {
         return (
             <View style={styles.container}>
+                <View style={{justifyContent:'center', marginBottom:60}}>
+                <View style={{flexDirection:"row", justifyContent:'center'}}>
+                    <Image style={{ width: 70, height: 70 }}
+                        source={require('../images/siren.jpg')} />
+                    <Text style={{fontSize:60, fontWeight:"bold", textAlignVertical:"center"}}>EMS</Text>    
+                </View>
+                <Text style={{fontSize:16, fontWeight:"bold", textAlignVertical:"center"}}>Emergency Management Services</Text>
+                </View>
                 <TextInput style={styles.inputBox}
                     onChangeText={(username) => this.setState({ username })}
                     underlineColorAndroid='rgba(0,0,0,0)'
@@ -83,7 +91,7 @@ export default class FormLogin extends Component {
                     ref={(input) => this.password = input}
                 />
 
-                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10 }}>
+                <View style={{ width: 300, borderColor: '#000', borderWidth: 1, borderRadius: 25, marginVertical: 10, marginBottom:60 }}>
                     <Picker style={{ width: "100%" }} selectedValue={this.state.loginType} onValueChange={this.updateLoginType}>
                         <Picker.Item label="Select Login Type" value="default" />
                         <Picker.Item label="Unit" value="unit" />
@@ -123,6 +131,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontSize: 16,
+        fontWeight:'bold',
         fontWeight: '500',
         color: '#ffffff',
         textAlign: 'center'
