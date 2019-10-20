@@ -52,8 +52,9 @@ export default class UserDashboardScreen extends Component {
     this.notificationListener = firebase.notifications().onNotification(async(notification) => {
         console.log("Inside onNotification in UserDashboard::", notification);
           const { title, body } = notification;
+          let obj = JSON.parse(body);
        let loginType = await AsyncStorage.getItem('loginType');
-       if (loginType == "user") {
+       if (loginType == "user" && obj.tripStatus == "start") {
          var whoosh = new Sound('buzzer.mp3', Sound.MAIN_BUNDLE, (error) => {
            if (error) {
              console.log('failed to load the sound', error);
@@ -77,8 +78,7 @@ export default class UserDashboardScreen extends Component {
          });
          whoosh.release();
  
-         Alert.alert(title, body, [{text:'OK', onPress:()=>{
-            let obj = JSON.parse(body)
+         Alert.alert("Emergency", "An Emergency Unit is coming in your route. Please clear any traffic at the earliest.", [{text:'OK', onPress:()=>{
              let source = obj && obj.source && obj.source.location
              let destination = obj && obj.destination && obj.destination.location
              let unit = obj && obj.currentLocation
@@ -95,6 +95,14 @@ export default class UserDashboardScreen extends Component {
             }
             
          }}]);
+       }else{
+           this.setState({
+            coords: [],
+            source: undefined,
+            destination: undefined,
+            unitCoordinate:undefined,
+            eventId: undefined
+           })
        }
  
      });

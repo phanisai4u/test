@@ -205,7 +205,7 @@ export default class DirectionsScreen extends Component {
             "unit": username
         }
 
-           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/startTrip";
+           let url = "https://us-central1-ems-4-bce4c.cloudfunctions.net/webApi/api/v1/endTrip";
             let body = {
                 ...event
             }
