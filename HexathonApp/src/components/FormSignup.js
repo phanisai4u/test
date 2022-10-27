@@ -24,21 +24,18 @@ export default class FormSignup extends Component {
             dialogVisible:false
         }
     }
-    componentDidMount() {
-        NetInfo.isConnected.addEventListener(
-            'connectionChange',
-            this._handleConnectivityChange
-        );
+    // componentDidMount() {
+    //     NetInfo.isConnected.addEventListener(
+    //         'connectionChange',
+    //         this._handleConnectivityChange
+    //     );
        
-        NetInfo.isConnected.fetch().done((isConnected) => {
-            this.setState({isNetworkAvailable : isConnected})
-        });
-      }
+    //     NetInfo.isConnected.fetch().done((isConnected) => {
+    //         this.setState({isNetworkAvailable : isConnected})
+    //     });
+    //   }
       
-      componentWillUnmount() {
-        NetInfo.isConnected.removeEventListener(
-            'connectionChange',
-            this._handleConnectivityChange
+    
         );
      
       }
