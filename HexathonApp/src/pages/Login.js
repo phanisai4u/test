@@ -5,6 +5,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage, Keyb
 
 import FormLogin from '../components/FormLogin';
 
+//add sample change hellle
 export default class Login extends Component {
 
     signup() {
@@ -14,20 +15,7 @@ export default class Login extends Component {
     
     
 
-    render() {
-        return(
-            
-                <View style={styles.container}>
-                <Text>{'\n'}</Text>
-                <Text>{'\n'}</Text>
-                <FormLogin type="Login"/>
-                <View style={styles.signupTextCont}> 
-                    <Text style={styles.signupText}>Dont have an account yet? </Text>
-                    <TouchableOpacity onPress={this.signup}><Text style={styles.signupButton}>Signup</Text></TouchableOpacity>
-                </View>
-            </View>
-        )
-    }
+    
 }
 
 const styles = StyleSheet.create({
