@@ -8,15 +8,7 @@ import { Dialog } from 'react-native-simple-dialogs';
 
 export default class FormLogin extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: '',
-            password: '',
-            loginType: 'default',
-            isNetworkAvailable:false,
-            dialogVisible: false
-        }
+    
     }
     componentDidMount() {
         NetInfo.isConnected.addEventListener(

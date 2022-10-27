@@ -8,6 +8,8 @@
  * @format
  */
 
+
+//Added for sample git commit
 import React, { Component } from 'react';
 import {
   SafeAreaView,
